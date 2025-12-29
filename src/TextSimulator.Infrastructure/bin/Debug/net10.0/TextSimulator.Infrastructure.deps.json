@@ -1,0 +1,39 @@
+{
+  "runtimeTarget": {
+    "name": ".NETCoreApp,Version=v10.0",
+    "signature": ""
+  },
+  "compilationOptions": {},
+  "targets": {
+    ".NETCoreApp,Version=v10.0": {
+      "TextSimulator.Infrastructure/1.0.0": {
+        "dependencies": {
+          "TextSimulator.Shared": "1.0.0"
+        },
+        "runtime": {
+          "TextSimulator.Infrastructure.dll": {}
+        }
+      },
+      "TextSimulator.Shared/1.0.0": {
+        "runtime": {
+          "TextSimulator.Shared.dll": {
+            "assemblyVersion": "1.0.0.0",
+            "fileVersion": "1.0.0.0"
+          }
+        }
+      }
+    }
+  },
+  "libraries": {
+    "TextSimulator.Infrastructure/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "TextSimulator.Shared/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    }
+  }
+}

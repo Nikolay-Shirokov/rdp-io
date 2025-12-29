@@ -1,0 +1,14 @@
+# Auto detect text files and normalize line endings
+* text=auto
+
+# C# files
+*.cs text eol=crlf
+*.csproj text eol=crlf
+*.sln text eol=crlf
+*.slnx text eol=crlf
+
+# JSON files
+*.json text eol=crlf
+
+# Markdown files
+*.md text eol=crlf

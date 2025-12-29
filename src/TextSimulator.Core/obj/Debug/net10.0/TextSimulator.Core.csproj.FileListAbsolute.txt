@@ -1,0 +1,17 @@
+C:\WS\tasks\rdp-io\src\TextSimulator.Core\bin\Debug\net10.0\TextSimulator.Core.deps.json
+C:\WS\tasks\rdp-io\src\TextSimulator.Core\bin\Debug\net10.0\TextSimulator.Core.dll
+C:\WS\tasks\rdp-io\src\TextSimulator.Core\bin\Debug\net10.0\TextSimulator.Core.pdb
+C:\WS\tasks\rdp-io\src\TextSimulator.Core\bin\Debug\net10.0\TextSimulator.Infrastructure.dll
+C:\WS\tasks\rdp-io\src\TextSimulator.Core\bin\Debug\net10.0\TextSimulator.Shared.dll
+C:\WS\tasks\rdp-io\src\TextSimulator.Core\bin\Debug\net10.0\TextSimulator.Shared.pdb
+C:\WS\tasks\rdp-io\src\TextSimulator.Core\bin\Debug\net10.0\TextSimulator.Infrastructure.pdb
+C:\WS\tasks\rdp-io\src\TextSimulator.Core\obj\Debug\net10.0\TextSimulator.Core.csproj.AssemblyReference.cache
+C:\WS\tasks\rdp-io\src\TextSimulator.Core\obj\Debug\net10.0\TextSimulator.Core.GeneratedMSBuildEditorConfig.editorconfig
+C:\WS\tasks\rdp-io\src\TextSimulator.Core\obj\Debug\net10.0\TextSimulator.Core.AssemblyInfoInputs.cache
+C:\WS\tasks\rdp-io\src\TextSimulator.Core\obj\Debug\net10.0\TextSimulator.Core.AssemblyInfo.cs
+C:\WS\tasks\rdp-io\src\TextSimulator.Core\obj\Debug\net10.0\TextSimulator.Core.csproj.CoreCompileInputs.cache
+C:\WS\tasks\rdp-io\src\TextSimulator.Core\obj\Debug\net10.0\TextSimu.CAC2A319.Up2Date
+C:\WS\tasks\rdp-io\src\TextSimulator.Core\obj\Debug\net10.0\TextSimulator.Core.dll
+C:\WS\tasks\rdp-io\src\TextSimulator.Core\obj\Debug\net10.0\refint\TextSimulator.Core.dll
+C:\WS\tasks\rdp-io\src\TextSimulator.Core\obj\Debug\net10.0\TextSimulator.Core.pdb
+C:\WS\tasks\rdp-io\src\TextSimulator.Core\obj\Debug\net10.0\ref\TextSimulator.Core.dll

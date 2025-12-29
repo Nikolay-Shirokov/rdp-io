@@ -1,0 +1,11 @@
+C:\WS\tasks\rdp-io\src\TextSimulator.Shared\bin\Debug\net10.0\TextSimulator.Shared.deps.json
+C:\WS\tasks\rdp-io\src\TextSimulator.Shared\bin\Debug\net10.0\TextSimulator.Shared.dll
+C:\WS\tasks\rdp-io\src\TextSimulator.Shared\bin\Debug\net10.0\TextSimulator.Shared.pdb
+C:\WS\tasks\rdp-io\src\TextSimulator.Shared\obj\Debug\net10.0\TextSimulator.Shared.GeneratedMSBuildEditorConfig.editorconfig
+C:\WS\tasks\rdp-io\src\TextSimulator.Shared\obj\Debug\net10.0\TextSimulator.Shared.AssemblyInfoInputs.cache
+C:\WS\tasks\rdp-io\src\TextSimulator.Shared\obj\Debug\net10.0\TextSimulator.Shared.AssemblyInfo.cs
+C:\WS\tasks\rdp-io\src\TextSimulator.Shared\obj\Debug\net10.0\TextSimulator.Shared.csproj.CoreCompileInputs.cache
+C:\WS\tasks\rdp-io\src\TextSimulator.Shared\obj\Debug\net10.0\TextSimulator.Shared.dll
+C:\WS\tasks\rdp-io\src\TextSimulator.Shared\obj\Debug\net10.0\refint\TextSimulator.Shared.dll
+C:\WS\tasks\rdp-io\src\TextSimulator.Shared\obj\Debug\net10.0\TextSimulator.Shared.pdb
+C:\WS\tasks\rdp-io\src\TextSimulator.Shared\obj\Debug\net10.0\ref\TextSimulator.Shared.dll
