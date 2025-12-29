@@ -5,30 +5,35 @@ namespace TextSimulator.Core.KeyboardSimulation;
 
 /// <summary>
 /// Маппинг символов на виртуальные клавиши
-/// TASK-07: Реализация только для ASCII символов
+/// TASK-07: ASCII символы
+/// TASK-08: Поддержка русской раскладки (кириллица)
 /// </summary>
 public class CharacterMapper
 {
-    private readonly Dictionary<char, KeyMapping> _mappings;
+    private readonly Dictionary<char, KeyMapping> _englishMappings;
+    private readonly Dictionary<char, KeyMapping> _russianMappings;
     private readonly ILogger _logger;
 
     public CharacterMapper(ILogger logger)
     {
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-        _mappings = InitializeAsciiMappings();
+        _englishMappings = InitializeEnglishMappings();
+        _russianMappings = InitializeRussianMappings();
     }
 
     /// <summary>
-    /// Получает маппинг для символа
+    /// Получает маппинг для символа с учетом раскладки
     /// </summary>
-    public KeyMapping GetKeyMapping(char character)
+    public KeyMapping GetKeyMapping(char character, KeyboardLayout layout)
     {
-        if (_mappings.TryGetValue(character, out KeyMapping? mapping))
+        var mappings = layout == KeyboardLayout.Russian ? _russianMappings : _englishMappings;
+
+        if (mappings.TryGetValue(character, out KeyMapping? mapping))
         {
             return mapping;
         }
 
-        throw new UnsupportedCharacterException($"Символ '{character}' (U+{(int)character:X4}) не поддерживается");
+        throw new UnsupportedCharacterException($"Символ '{character}' (U+{(int)character:X4}) не поддерживается в раскладке {layout}");
     }
 
     /// <summary>
@@ -36,15 +41,16 @@ public class CharacterMapper
     /// </summary>
     public bool IsCharacterSupported(char character)
     {
-        return _mappings.ContainsKey(character);
+        return _englishMappings.ContainsKey(character) ||
+               _russianMappings.ContainsKey(character);
     }
 
     // ===== Initialization =====
 
     /// <summary>
-    /// Инициализирует маппинг для ASCII символов
+    /// Инициализирует маппинг для английской раскладки (ASCII символы)
     /// </summary>
-    private Dictionary<char, KeyMapping> InitializeAsciiMappings()
+    private Dictionary<char, KeyMapping> InitializeEnglishMappings()
     {
         var mappings = new Dictionary<char, KeyMapping>();
 
@@ -125,8 +131,85 @@ public class CharacterMapper
         mappings['('] = new KeyMapping { Character = '(', VirtualKeyCode = VirtualKeyCode.VK_9, RequiresShift = true };
         mappings[')'] = new KeyMapping { Character = ')', VirtualKeyCode = VirtualKeyCode.VK_0, RequiresShift = true };
 
-        _logger.LogInfo($"ASCII маппинг инициализирован: {mappings.Count} символов");
+        _logger.LogInfo($"Английский маппинг инициализирован: {mappings.Count} символов");
 
         return mappings;
+    }
+
+    /// <summary>
+    /// Инициализирует маппинг для русской раскладки (ЙЦУКЕН)
+    /// </summary>
+    private Dictionary<char, KeyMapping> InitializeRussianMappings()
+    {
+        var mappings = new Dictionary<char, KeyMapping>();
+
+        // Русская раскладка ЙЦУКЕН (строчные буквы)
+        var lowerRussian = "йцукенгшщзхъфывапролджэячсмитьбю";
+        var lowerEnglishKeys = "qwertyuiop[]asdfghjkl;'zxcvbnm,.";
+
+        for (int i = 0; i < lowerRussian.Length; i++)
+        {
+            char rusChar = lowerRussian[i];
+            char engKey = lowerEnglishKeys[i];
+
+            VirtualKeyCode vkCode = GetVirtualKeyForChar(engKey);
+
+            mappings[rusChar] = new KeyMapping
+            {
+                Character = rusChar,
+                VirtualKeyCode = vkCode,
+                RequiresShift = false
+            };
+        }
+
+        // Русская раскладка ЙЦУКЕН (заглавные буквы - требуют Shift)
+        var upperRussian = "ЙЦУКЕНГШЩЗХЪФЫВАПРОЛДЖЭЯЧСМИТЬБЮ";
+
+        for (int i = 0; i < upperRussian.Length; i++)
+        {
+            char rusChar = upperRussian[i];
+            char engKey = lowerEnglishKeys[i];
+
+            VirtualKeyCode vkCode = GetVirtualKeyForChar(engKey);
+
+            mappings[rusChar] = new KeyMapping
+            {
+                Character = rusChar,
+                VirtualKeyCode = vkCode,
+                RequiresShift = true
+            };
+        }
+
+        // Буква Ё/ё (на клавише `)
+        mappings['ё'] = new KeyMapping { Character = 'ё', VirtualKeyCode = VirtualKeyCode.OEM_3, RequiresShift = false };
+        mappings['Ё'] = new KeyMapping { Character = 'Ё', VirtualKeyCode = VirtualKeyCode.OEM_3, RequiresShift = true };
+
+        _logger.LogInfo($"Русский маппинг инициализирован: {mappings.Count} символов");
+
+        return mappings;
+    }
+
+    /// <summary>
+    /// Получает VirtualKeyCode для английского символа
+    /// </summary>
+    private VirtualKeyCode GetVirtualKeyForChar(char c)
+    {
+        // Буквы a-z
+        if (c >= 'a' && c <= 'z')
+            return (VirtualKeyCode)(c - 'a' + (int)VirtualKeyCode.VK_A);
+
+        // OEM клавиши
+        return c switch
+        {
+            '[' => VirtualKeyCode.OEM_4,
+            ']' => VirtualKeyCode.OEM_6,
+            ';' => VirtualKeyCode.OEM_1,
+            '\'' => VirtualKeyCode.OEM_7,
+            ',' => VirtualKeyCode.OEM_COMMA,
+            '.' => VirtualKeyCode.OEM_PERIOD,
+            '/' => VirtualKeyCode.OEM_2,
+            '`' => VirtualKeyCode.OEM_3,
+            _ => VirtualKeyCode.SPACE // Fallback (не должно использоваться)
+        };
     }
 }
