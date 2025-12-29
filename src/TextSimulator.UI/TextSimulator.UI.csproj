@@ -3,6 +3,7 @@
   <ItemGroup>
     <ProjectReference Include="..\TextSimulator.Shared\TextSimulator.Shared.csproj" />
     <ProjectReference Include="..\TextSimulator.Core\TextSimulator.Core.csproj" />
+    <ProjectReference Include="..\TextSimulator.Infrastructure\TextSimulator.Infrastructure.csproj" />
   </ItemGroup>
 
   <PropertyGroup>
@@ -10,6 +11,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <UseWPF>true</UseWPF>
+    <UseWindowsForms>true</UseWindowsForms>
   </PropertyGroup>
 
 </Project>
