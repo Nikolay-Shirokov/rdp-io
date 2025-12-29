@@ -4,6 +4,7 @@
     <ProjectReference Include="..\TextSimulator.Shared\TextSimulator.Shared.csproj" />
     <ProjectReference Include="..\TextSimulator.Core\TextSimulator.Core.csproj" />
     <ProjectReference Include="..\TextSimulator.Infrastructure\TextSimulator.Infrastructure.csproj" />
+    <ProjectReference Include="..\TextSimulator.Configuration\TextSimulator.Configuration.csproj" />
   </ItemGroup>
 
   <PropertyGroup>

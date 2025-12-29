@@ -58,6 +58,7 @@ public class ApplicationOrchestrator : IDisposable
     {
         // События от System Tray
         _systemTrayManager.StartTransmissionRequested += OnStartTransmissionRequested;
+        _systemTrayManager.SettingsRequested += OnSettingsRequested;
         _systemTrayManager.ExitRequested += OnExitRequested;
 
         // События от State Manager
@@ -82,6 +83,48 @@ public class ApplicationOrchestrator : IDisposable
             _systemTrayManager.ShowNotification(
                 "Ошибка",
                 "Не удалось запустить передачу",
+                ToolTipIcon.Error);
+        }
+    }
+
+    /// <summary>
+    /// Обработчик запроса открытия окна настроек
+    /// </summary>
+    private void OnSettingsRequested(object? sender, EventArgs e)
+    {
+        _logger.LogInfo("Settings window requested");
+
+        try
+        {
+            var settings = _settingsManager.CurrentSettings;
+            var settingsWindow = new SettingsWindow(settings);
+
+            // Показываем окно модально
+            var result = settingsWindow.ShowDialog();
+
+            if (result == true)
+            {
+                // Пользователь нажал "Сохранить"
+                _settingsManager.SaveSettings();
+                _logger.LogInfo("Settings saved successfully");
+
+                _systemTrayManager.ShowNotification(
+                    "Настройки сохранены",
+                    "Изменения применены успешно",
+                    ToolTipIcon.Info);
+            }
+            else
+            {
+                // Пользователь нажал "Отмена"
+                _logger.LogInfo("Settings changes cancelled");
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError($"Failed to open settings window: {ex.Message}");
+            _systemTrayManager.ShowNotification(
+                "Ошибка",
+                "Не удалось открыть окно настроек",
                 ToolTipIcon.Error);
         }
     }
