@@ -1,5 +1,8 @@
 /task/
 
+# Claude Code локальные настройки
+.claude/settings.local.json
+
 ## Стандартные исключения для .NET проектов
 
 # Артефакты сборки
