@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("TextSimulator.Core")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+492bd20e904a1f433817638d7827212f339cd26d")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+f9f18736cce8a807c1c7674cd37024556ed37446")]
 [assembly: System.Reflection.AssemblyProductAttribute("TextSimulator.Core")]
 [assembly: System.Reflection.AssemblyTitleAttribute("TextSimulator.Core")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
