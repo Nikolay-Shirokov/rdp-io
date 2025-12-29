@@ -1,4 +1,5 @@
 using System.Text.Json;
+using TextSimulator.Core.KeyboardSimulation;
 using TextSimulator.Infrastructure.Logging;
 
 namespace TextSimulator.Configuration;
@@ -107,5 +108,19 @@ public class SettingsManager
         _logger.LogInfo("Resetting settings to defaults");
         _currentSettings = new AppSettings();
         SaveSettings();
+    }
+
+    /// <summary>
+    /// Получает стратегию передачи на основе текущих настроек
+    /// </summary>
+    public TransmissionStrategy GetTransmissionStrategy()
+    {
+        return _currentSettings.TransmissionMode switch
+        {
+            TransmissionMode.Fast => new FastStrategy(),
+            TransmissionMode.Reliable => new ReliableStrategy(),
+            TransmissionMode.Slow => new SlowStrategy(),
+            _ => new ReliableStrategy() // Default fallback
+        };
     }
 }

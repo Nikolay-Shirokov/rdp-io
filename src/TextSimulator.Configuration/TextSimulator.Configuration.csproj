@@ -3,6 +3,7 @@
   <ItemGroup>
     <ProjectReference Include="..\TextSimulator.Shared\TextSimulator.Shared.csproj" />
     <ProjectReference Include="..\TextSimulator.Infrastructure\TextSimulator.Infrastructure.csproj" />
+    <ProjectReference Include="..\TextSimulator.Core\TextSimulator.Core.csproj" />
   </ItemGroup>
 
   <PropertyGroup>
