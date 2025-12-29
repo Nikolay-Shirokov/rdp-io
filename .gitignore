@@ -1,1 +1,98 @@
 /task/
+
+## Стандартные исключения для .NET проектов
+
+# Артефакты сборки
+[Bb]in/
+[Oo]bj/
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
+bld/
+[Ll]og/
+[Ll]ogs/
+
+# Visual Studio cache/options
+.vs/
+.vscode/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+*.userprefs
+
+# Build results
+[Dd]ebugPublic/
+[Rr]eleases/
+*.pidb
+*.svclog
+*.scc
+
+# DLLs и исполняемые файлы
+*.dll
+*.exe
+*.pdb
+*.cache
+
+# NuGet packages
+*.nupkg
+*.snupkg
+packages/
+!**/packages/build/
+
+# Test results
+[Tt]est[Rr]esult*/
+[Bb]uild[Ll]og.*
+
+# Временные файлы сборки
+*.obj
+*.log
+*.tlog
+*.lastbuildstate
+*.tmp
+*_i.c
+*_p.c
+*_h.h
+*.ilk
+*.meta
+*.iobj
+*.ipdb
+*.pgc
+*.pgd
+*.rsp
+*.sbr
+*.tlb
+*.tli
+*.tlh
+*.tmp_proj
+*.vspscc
+*.vssscc
+.builds
+*.dotCover
+
+# Rider
+.idea/
+*.sln.iml
+
+# ReSharper
+_ReSharper*/
+*.[Rr]e[Ss]harper
+*.DotSettings.user
+
+# NCrunch
+_NCrunch_*
+.*crunch*.local.xml
+nCrunchTemp_*
+
+# Публикация
+publish/
+PublishProfiles/
+
+# Файлы настроек пользователя
+*.lock.json
+project.lock.json
+project.fragment.lock.json
+artifacts/
