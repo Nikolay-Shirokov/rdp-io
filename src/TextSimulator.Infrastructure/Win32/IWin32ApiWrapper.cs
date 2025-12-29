@@ -43,4 +43,9 @@ public interface IWin32ApiWrapper
     /// Returns the size of the global memory object
     /// </summary>
     UIntPtr GlobalSize(IntPtr hMem);
+
+    /// <summary>
+    /// Determines whether the clipboard contains data in the specified format
+    /// </summary>
+    bool IsClipboardFormatAvailable(ClipboardFormat format);
 }

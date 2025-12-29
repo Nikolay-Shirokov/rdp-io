@@ -44,6 +44,10 @@ public class Win32ApiWrapper : IWin32ApiWrapper
     [DllImport("kernel32.dll", EntryPoint = "GlobalSize", SetLastError = true)]
     private static extern UIntPtr NativeGlobalSize(IntPtr hMem);
 
+    [DllImport("user32.dll", EntryPoint = "IsClipboardFormatAvailable", SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static extern bool NativeIsClipboardFormatAvailable(uint format);
+
     /// <summary>
     /// Opens the clipboard for examination
     /// </summary>
@@ -90,5 +94,13 @@ public class Win32ApiWrapper : IWin32ApiWrapper
     public UIntPtr GlobalSize(IntPtr hMem)
     {
         return NativeGlobalSize(hMem);
+    }
+
+    /// <summary>
+    /// Determines whether the clipboard contains data in the specified format
+    /// </summary>
+    public bool IsClipboardFormatAvailable(ClipboardFormat format)
+    {
+        return NativeIsClipboardFormatAvailable((uint)format);
     }
 }
