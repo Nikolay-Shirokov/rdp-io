@@ -15,4 +15,16 @@
     <UseWPF>true</UseWPF>
   </PropertyGroup>
 
+  <!-- Publish Configuration -->
+  <!-- ПРИМЕЧАНИЕ: .NET 10 Preview - single-file publish не поддерживается -->
+  <!-- После релиза .NET 10 можно будет добавить: -->
+  <!--   <PublishSingleFile>true</PublishSingleFile> -->
+  <!--   <SelfContained>true</SelfContained> -->
+  <!--   <RuntimeIdentifier>win-x64</RuntimeIdentifier> -->
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+    <DebugType>none</DebugType>
+    <DebugSymbols>false</DebugSymbols>
+    <Optimize>true</Optimize>
+  </PropertyGroup>
+
 </Project>
