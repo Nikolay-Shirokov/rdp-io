@@ -161,20 +161,42 @@ public class KeyboardSimulatorEngine : IKeyboardSimulator
     // ===== ПРИВАТНЫЕ МЕТОДЫ =====
 
     /// <summary>
-    /// Переключает раскладку клавиатуры
-    /// В MVP: изменяем только внутреннее состояние
-    /// В будущем: можно добавить эмуляцию Alt+Shift
+    /// Переключает раскладку клавиатуры через эмуляцию Alt+Shift
     /// </summary>
     private async Task SwitchLayoutAsync(KeyboardLayout targetLayout, CancellationToken cancellationToken)
     {
         _logger.LogInfo($"Переключение раскладки: {_layoutManager.CurrentLayout} -> {targetLayout}");
 
-        // В MVP: просто меняем внутреннее состояние
-        // Предполагается, что пользователь уже установил нужную раскладку в RDP-сессии
+        // Эмулируем нажатие Alt+Shift для переключения раскладки
+        // Это стандартная комбинация для переключения раскладки в Windows
+        var inputs = new INPUT[]
+        {
+            // Нажатие Alt
+            CreateKeyInput(VirtualKeyCode.MENU, isKeyUp: false),
+
+            // Нажатие Shift
+            CreateKeyInput(VirtualKeyCode.SHIFT, isKeyUp: false),
+
+            // Отпускание Shift
+            CreateKeyInput(VirtualKeyCode.SHIFT, isKeyUp: true),
+
+            // Отпускание Alt
+            CreateKeyInput(VirtualKeyCode.MENU, isKeyUp: true)
+        };
+
+        // Отправка всех событий
+        uint result = _win32Api.SendInput((uint)inputs.Length, inputs);
+
+        if (result != inputs.Length)
+        {
+            _logger.LogWarning($"Не все события переключения раскладки отправлены: {result}/{inputs.Length}");
+        }
+
+        // Обновляем внутреннее состояние
         _layoutManager.CurrentLayout = targetLayout;
 
-        // Небольшая задержка после переключения раскладки
-        await Task.Delay(10, cancellationToken);
+        // Задержка после переключения раскладки (даем системе время обработать)
+        await Task.Delay(50, cancellationToken);
     }
 
     /// <summary>
