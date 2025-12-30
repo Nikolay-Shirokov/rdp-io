@@ -2,19 +2,19 @@
 chcp 65001 >nul
 setlocal enabledelayedexpansion
 REM ==============================================================================
-REM TextSimulator - Self-contained single-file publish (без .NET на целевой машине)
+REM rdp-io - Self-contained single-file publish (без .NET на целевой машине)
 REM ==============================================================================
 REM Собирает переносимый EXE для машин без установленного .NET.
-REM Результат: publish-selfcontained\TextSimulator.App.exe
+REM Результат: publish-selfcontained\RdpIo.App.exe
 REM Требуется .NET SDK на машине сборки.
 REM ==============================================================================
 
 echo ========================================
-echo TextSimulator - Self-contained Publish
+echo rdp-io - Self-contained Publish
 echo ========================================
 echo.
 
-set PROJECT_PATH=src\TextSimulator.App\TextSimulator.App.csproj
+set PROJECT_PATH=src\RdpIo.App\RdpIo.App.csproj
 set OUTPUT_DIR=publish-selfcontained
 set RID=win-x64
 
@@ -42,13 +42,13 @@ if errorlevel 1 (
     exit /b 1
 )
 
-if not exist "%OUTPUT_DIR%\TextSimulator.App.exe" (
+if not exist "%OUTPUT_DIR%\RdpIo.App.exe" (
     echo.
     echo [ОШИБКА] Итоговый EXE не найден в %OUTPUT_DIR%.
     exit /b 1
 )
 
-for %%A in ("%OUTPUT_DIR%\TextSimulator.App.exe") do (
+for %%A in ("%OUTPUT_DIR%\RdpIo.App.exe") do (
     set SIZE=%%~zA
 )
 set /a SIZE_MB=!SIZE! / 1048576
@@ -56,7 +56,9 @@ set /a SIZE_MB=!SIZE! / 1048576
 echo.
 echo ========================================
 echo Публикация завершена.
-echo Выходной файл: %OUTPUT_DIR%\TextSimulator.App.exe
+echo Выходной файл: %OUTPUT_DIR%\RdpIo.App.exe
 if defined SIZE_MB echo Размер: !SIZE_MB! MB
 
 endlocal
+
+

@@ -6,21 +6,21 @@
 
 ## Project Structure & Module Organization
 Репозиторий — WPF приложение на .NET 10, разделенное на проекты по ответственности:
-- `src/TextSimulator.App/` — точка входа и композиция приложения.
-- `src/TextSimulator.Core/` — основная логика (клавиатура/буфер/состояние).
-- `src/TextSimulator.UI/` — WPF UI компоненты и окна.
-- `src/TextSimulator.Infrastructure/` — Win32, файловая система, логирование.
-- `src/TextSimulator.Configuration/` — модели настроек и значения по умолчанию.
-- `src/TextSimulator.Shared/` — общие типы и утилиты.
-Сопутствующие материалы: `tests/`, `task/`, `BUILD.md`, `USER_MANUAL.md`, `publish.cmd`. Решение — `TextSimulator.slnx`.
+- `src/RdpIo.App/` — точка входа и композиция приложения.
+- `src/RdpIo.Core/` — основная логика (клавиатура/буфер/состояние).
+- `src/RdpIo.UI/` — WPF UI компоненты и окна.
+- `src/RdpIo.Infrastructure/` — Win32, файловая система, логирование.
+- `src/RdpIo.Configuration/` — модели настроек и значения по умолчанию.
+- `src/RdpIo.Shared/` — общие типы и утилиты.
+Сопутствующие материалы: `tests/`, `task/`, `BUILD.md`, `USER_MANUAL.md`, `publish.cmd`. Решение — `RdpIo.slnx`.
 
 ## Build, Test, and Development Commands
-- `dotnet build` — Debug сборка (`src/TextSimulator.App/bin/Debug/net10.0-windows/`).
+- `dotnet build` — Debug сборка (`src/RdpIo.App/bin/Debug/net10.0-windows/`).
 - `dotnet build --configuration Release` — Release сборка.
-- `dotnet test` — запуск xUnit тестов из `tests/TextSimulator.Core.Tests` (с `coverlet.collector`).
+- `dotnet test` — запуск xUnit тестов из `tests/RdpIo.Core.Tests` (с `coverlet.collector`).
 - `publish.cmd` — публикация в `publish/`.
 - `publish-selfcontained.cmd` — self-contained single-file EXE для целевой машины без .NET (вывод в `publish-selfcontained/`).
-- `dotnet publish src/TextSimulator.App/TextSimulator.App.csproj --configuration Release --output publish` — ручной вариант публикации.
+- `dotnet publish src/RdpIo.App/RdpIo.App.csproj --configuration Release --output publish` — ручной вариант публикации.
 
 ## Coding Style & Naming Conventions
 - C# использует file-scoped namespaces, nullable reference types и XML-док комментарии для публичных API.
@@ -29,7 +29,7 @@
 - Имена XAML ресурсов и UI классов согласовывать между собой.
 
 ## Testing Guidelines
-- Фреймворк: xUnit (`tests/TextSimulator.Core.Tests`).
+- Фреймворк: xUnit (`tests/RdpIo.Core.Tests`).
 - Имена тестов должны описывать поведение и результат; новые классы — с суффиксом `*Tests`.
 - Перед PR запускать `dotnet test`; для изменений Core/Infrastructure добавлять тесты.
 
@@ -40,3 +40,4 @@
 ## Configuration & Runtime Artifacts
 - Настройки — `settings.json` рядом с EXE; логи — `logs/app.log`.
 - Не коммитить локальные настройки и генерируемые логи.
+

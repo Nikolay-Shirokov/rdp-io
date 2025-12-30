@@ -1,4 +1,4 @@
-# TextSimulator - Инструкция по сборке и публикации
+# rdp-io - Инструкция по сборке и публикации
 
 ## 📋 Требования
 
@@ -14,7 +14,7 @@
 dotnet build
 ```
 
-Результат: `src/TextSimulator.App/bin/Debug/net10.0-windows/`
+Результат: `src/RdpIo.App/bin/Debug/net10.0-windows/`
 
 ### Release сборка
 
@@ -22,7 +22,7 @@ dotnet build
 dotnet build --configuration Release
 ```
 
-Результат: `src/TextSimulator.App/bin/Release/net10.0-windows/`
+Результат: `src/RdpIo.App/bin/Release/net10.0-windows/`
 
 ### Сборка в отдельную директорию
 
@@ -37,7 +37,7 @@ publish.cmd
 Или вручную:
 
 ```bash
-dotnet build src/TextSimulator.App/TextSimulator.App.csproj --configuration Release --output publish
+dotnet build src/RdpIo.App/RdpIo.App.csproj --configuration Release --output publish
 ```
 
 ### Self-contained single-file publish (без .NET на целевой машине)
@@ -55,8 +55,8 @@ publish-selfcontained.cmd
 Из-за preview-статуса .NET 10, single-file publish пока не поддерживается.
 
 Текущая сборка создает:
-- `TextSimulator.App.exe` (главный исполняемый файл)
-- Библиотеки: `TextSimulator.*.dll`
+- `RdpIo.App.exe` (главный исполняемый файл)
+- Библиотеки: `RdpIo.*.dll`
 - Зависимости .NET Framework
 
 **Требования на целевой машине:**
@@ -64,7 +64,7 @@ publish-selfcontained.cmd
 
 ### Будущая конфигурация (после релиза .NET 10)
 
-После выхода стабильной версии .NET 10 можно будет включить в `TextSimulator.App.csproj`:
+После выхода стабильной версии .NET 10 можно будет включить в `RdpIo.App.csproj`:
 
 ```xml
 <PropertyGroup>
@@ -80,7 +80,7 @@ publish-selfcontained.cmd
 Команда для создания single-file executable:
 
 ```bash
-dotnet publish src/TextSimulator.App/TextSimulator.App.csproj ^
+dotnet publish src/RdpIo.App/RdpIo.App.csproj ^
     --configuration Release ^
     --runtime win-x64 ^
     --self-contained true ^
@@ -89,7 +89,7 @@ dotnet publish src/TextSimulator.App/TextSimulator.App.csproj ^
     --output publish
 ```
 
-Результат: один файл `TextSimulator.App.exe` (~10-20 MB)
+Результат: один файл `RdpIo.App.exe` (~10-20 MB)
 
 ## 🚀 Запуск приложения
 
@@ -97,14 +97,14 @@ dotnet publish src/TextSimulator.App/TextSimulator.App.csproj ^
 
 ```cmd
 cd publish
-TextSimulator.App.exe
+RdpIo.App.exe
 ```
 
 ### Portable deployment
 
 1. Скопируйте всю директорию `publish/` на целевую машину
 2. Убедитесь, что установлен .NET 10 Runtime
-3. Запустите `TextSimulator.App.exe`
+3. Запустите `RdpIo.App.exe`
 
 Приложение создаст рядом с .exe:
 - `settings.json` - файл настроек
@@ -114,13 +114,13 @@ TextSimulator.App.exe
 
 ```
 publish/
-├── TextSimulator.App.exe           # Главный исполняемый файл (159 KB)
-├── TextSimulator.App.dll           # Основная библиотека (25 KB)
-├── TextSimulator.Core.dll          # Ядро логики (37 KB)
-├── TextSimulator.UI.dll            # UI компоненты (35 KB)
-├── TextSimulator.Configuration.dll # Настройки (9.5 KB)
-├── TextSimulator.Infrastructure.dll# Инфраструктура (12 KB)
-├── TextSimulator.Shared.dll        # Общие типы (4 KB)
+├── RdpIo.App.exe           # Главный исполняемый файл (159 KB)
+├── RdpIo.App.dll           # Основная библиотека (25 KB)
+├── RdpIo.Core.dll          # Ядро логики (37 KB)
+├── RdpIo.UI.dll            # UI компоненты (35 KB)
+├── RdpIo.Configuration.dll # Настройки (9.5 KB)
+├── RdpIo.Infrastructure.dll# Инфраструктура (12 KB)
+├── RdpIo.Shared.dll        # Общие типы (4 KB)
 └── [прочие DLL зависимости]
 ```
 
@@ -149,7 +149,7 @@ publish/
 
 - Текущая сборка оптимизирована для разработки и тестирования
 - Для production deployment рекомендуется дождаться релиза .NET 10
-- Все настройки публикации закомментированы в `TextSimulator.App.csproj`
+- Все настройки публикации закомментированы в `RdpIo.App.csproj`
 - Скрипт `publish.cmd` автоматизирует процесс сборки
 
 ## 🐛 Troubleshooting
@@ -168,5 +168,6 @@ publish/
 1. Установлен ли .NET 10 Runtime
 2. Все ли DLL файлы находятся в одной директории с .exe
 3. Логи в `logs/app.log`
+
 
 

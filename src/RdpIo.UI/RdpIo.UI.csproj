@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\RdpIo.Shared\RdpIo.Shared.csproj" />
+    <ProjectReference Include="..\RdpIo.Core\RdpIo.Core.csproj" />
+    <ProjectReference Include="..\RdpIo.Infrastructure\RdpIo.Infrastructure.csproj" />
+    <ProjectReference Include="..\RdpIo.Configuration\RdpIo.Configuration.csproj" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <UseWPF>true</UseWPF>
+    <UseWindowsForms>true</UseWindowsForms>
+  </PropertyGroup>
+
+</Project>
+

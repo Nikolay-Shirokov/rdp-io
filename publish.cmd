@@ -1,11 +1,11 @@
 @echo off
 REM ================================================================================
-REM TextSimulator - Build Script
+REM rdp-io - Build Script
 REM ================================================================================
 REM Создает Release сборку приложения для Windows
 REM
 REM Выходной директория: publish\
-REM Главный файл: publish\TextSimulator.App.exe
+REM Главный файл: publish\RdpIo.App.exe
 REM
 REM ПРИМЕЧАНИЕ: .NET 10 Preview - single-file publish пока не поддерживается
 REM После релиза .NET 10 можно будет создавать portable single-file executable
@@ -14,12 +14,12 @@ REM Требования: .NET 10 Runtime на целевой системе
 REM ================================================================================
 
 echo ========================================
-echo TextSimulator - Build Script
+echo rdp-io - Build Script
 echo ========================================
 echo.
 
 REM Определяем путь к проекту
-set PROJECT_PATH=src\TextSimulator.App\TextSimulator.App.csproj
+set PROJECT_PATH=src\RdpIo.App\RdpIo.App.csproj
 set OUTPUT_DIR=publish
 
 echo Очистка предыдущей сборки...
@@ -51,12 +51,12 @@ echo ========================================
 echo.
 
 REM Показываем информацию о файле
-if exist "%OUTPUT_DIR%\TextSimulator.App.exe" (
-    echo Исполняемый файл: %OUTPUT_DIR%\TextSimulator.App.exe
+if exist "%OUTPUT_DIR%\RdpIo.App.exe" (
+    echo Исполняемый файл: %OUTPUT_DIR%\RdpIo.App.exe
     echo.
 
     REM Получаем размер файла в KB
-    for %%A in ("%OUTPUT_DIR%\TextSimulator.App.exe") do (
+    for %%A in ("%OUTPUT_DIR%\RdpIo.App.exe") do (
         set SIZE=%%~zA
     )
 
@@ -82,7 +82,7 @@ if exist "%OUTPUT_DIR%\TextSimulator.App.exe" (
     echo Приложение готово к использованию!
     echo ========================================
     echo.
-    echo Для запуска: %OUTPUT_DIR%\TextSimulator.App.exe
+    echo Для запуска: %OUTPUT_DIR%\RdpIo.App.exe
     echo.
     echo Настройки сохраняются в: settings.json (в директории с .exe)
     echo Логи сохраняются в: logs\app.log (в директории с .exe)
@@ -94,3 +94,4 @@ if exist "%OUTPUT_DIR%\TextSimulator.App.exe" (
 )
 
 pause
+

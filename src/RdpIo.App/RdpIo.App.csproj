@@ -1,0 +1,31 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\RdpIo.Core\RdpIo.Core.csproj" />
+    <ProjectReference Include="..\RdpIo.UI\RdpIo.UI.csproj" />
+    <ProjectReference Include="..\RdpIo.Configuration\RdpIo.Configuration.csproj" />
+    <ProjectReference Include="..\RdpIo.Infrastructure\RdpIo.Infrastructure.csproj" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWPF>true</UseWPF>
+  </PropertyGroup>
+
+  <!-- Publish Configuration -->
+  <!-- ПРИМЕЧАНИЕ: .NET 10 Preview - single-file publish не поддерживается -->
+  <!-- После релиза .NET 10 можно будет добавить: -->
+  <!--   <PublishSingleFile>true</PublishSingleFile> -->
+  <!--   <SelfContained>true</SelfContained> -->
+  <!--   <RuntimeIdentifier>win-x64</RuntimeIdentifier> -->
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+    <DebugType>none</DebugType>
+    <DebugSymbols>false</DebugSymbols>
+    <Optimize>true</Optimize>
+  </PropertyGroup>
+
+</Project>
+

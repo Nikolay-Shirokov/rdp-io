@@ -1,0 +1,11 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/RdpIo.App/RdpIo.App.csproj" />
+    <Project Path="src/RdpIo.Configuration/RdpIo.Configuration.csproj" />
+    <Project Path="src/RdpIo.Core/RdpIo.Core.csproj" />
+    <Project Path="src/RdpIo.Infrastructure/RdpIo.Infrastructure.csproj" />
+    <Project Path="src/RdpIo.Shared/RdpIo.Shared.csproj" />
+    <Project Path="src/RdpIo.UI/RdpIo.UI.csproj" />
+  </Folder>
+</Solution>
+
