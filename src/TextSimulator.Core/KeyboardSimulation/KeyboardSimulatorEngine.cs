@@ -45,21 +45,25 @@ public class KeyboardSimulatorEngine : IKeyboardSimulator
             throw new ArgumentException("Текст не может быть пустым", nameof(text));
         }
 
-        _logger.LogInfo($"Начало передачи: {text.Length} символов, стратегия: {_strategy.Name}");
+        // Нормализация концов строк: заменяем CRLF на LF, чтобы избежать двойных переносов.
+        // Это гарантирует, что \r и \n не будут обрабатываться как два отдельных переноса.
+        string normalizedText = text.Replace("\r\n", "\n");
+
+        _logger.LogInfo($"Начало передачи: {normalizedText.Length} символов, стратегия: {_strategy.Name}");
 
         var result = new TransmissionResult
         {
-            TotalCharacters = text.Length,
+            TotalCharacters = normalizedText.Length,
             StartTime = DateTime.UtcNow
         };
 
         try
         {
-            for (int i = 0; i < text.Length; i++)
+            for (int i = 0; i < normalizedText.Length; i++)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                char currentChar = text[i];
+                char currentChar = normalizedText[i];
 
                 // Проверка поддержки символа
                 if (!IsCharacterSupported(currentChar))
@@ -99,9 +103,9 @@ public class KeyboardSimulatorEngine : IKeyboardSimulator
                 progress?.Report(new TransmissionProgress
                 {
                     CurrentPosition = i + 1,
-                    TotalCharacters = text.Length,
+                    TotalCharacters = normalizedText.Length,
                     CurrentCharacter = currentChar,
-                    EstimatedTimeRemaining = CalculateEstimatedTime(i + 1, text.Length)
+                    EstimatedTimeRemaining = CalculateEstimatedTime(i + 1, normalizedText.Length)
                 });
 
                 // Задержка между символами согласно стратегии
