@@ -1,4 +1,6 @@
-@echo off
+﻿@echo off
+chcp 65001 >nul
+setlocal enabledelayedexpansion
 REM ================================================================================
 REM rdp-io - Build Script
 REM ================================================================================
@@ -55,19 +57,19 @@ if exist "%OUTPUT_DIR%\RdpIo.App.exe" (
     echo Исполняемый файл: %OUTPUT_DIR%\RdpIo.App.exe
     echo.
 
-    REM Получаем размер файла в KB
+    REM Получаем размер файла в байтах
     for %%A in ("%OUTPUT_DIR%\RdpIo.App.exe") do (
         set SIZE=%%~zA
     )
 
     REM Конвертируем байты в мегабайты
-    set /a SIZE_MB=%SIZE% / 1048576
+    set /a SIZE_MB=!SIZE! / 1048576
 
-    echo Размер файла: %SIZE_MB% MB
+    echo Размер файла: !SIZE_MB! MB
     echo.
 
     REM Проверяем размер (цель: меньше 50 MB для single-file WPF приложения)
-    if %SIZE_MB% GTR 50 (
+    if !SIZE_MB! GTR 50 (
         echo [ПРЕДУПРЕЖДЕНИЕ] Размер файла превышает 50 MB
     ) else (
         echo [OK] Размер файла в пределах нормы
@@ -84,8 +86,8 @@ if exist "%OUTPUT_DIR%\RdpIo.App.exe" (
     echo.
     echo Для запуска: %OUTPUT_DIR%\RdpIo.App.exe
     echo.
-    echo Настройки сохраняются в: settings.json (в директории с .exe)
-    echo Логи сохраняются в: logs\app.log (в директории с .exe)
+    echo Настройки сохраняются в: settings.json рядом с .exe
+    echo Логи сохраняются в: logs\app.log рядом с .exe
     echo.
 ) else (
     echo [ОШИБКА] Исполняемый файл не найден!
@@ -94,4 +96,5 @@ if exist "%OUTPUT_DIR%\RdpIo.App.exe" (
 )
 
 pause
+endlocal
 

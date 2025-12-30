@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+ï»¿<Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
     <ProjectReference Include="..\RdpIo.Core\RdpIo.Core.csproj" />
@@ -16,8 +16,8 @@
   </PropertyGroup>
 
   <!-- Publish Configuration -->
-  <!-- ÏÐÈÌÅ×ÀÍÈÅ: .NET 10 Preview - single-file publish íå ïîääåðæèâàåòñÿ -->
-  <!-- Ïîñëå ðåëèçà .NET 10 ìîæíî áóäåò äîáàâèòü: -->
+  <!-- ÐŸÐ Ð˜ÐœÐ•Ð§ÐÐÐ˜Ð•: .NET 10 Preview - single-file publish Ð½Ðµ Ð¿Ð¾Ð´Ð´ÐµÑ€Ð¶Ð¸Ð²Ð°ÐµÑ‚ÑÑ -->
+  <!-- ÐŸÐ¾ÑÐ»Ðµ Ñ€ÐµÐ»Ð¸Ð·Ð° .NET 10 Ð¼Ð¾Ð¶Ð½Ð¾ Ð±ÑƒÐ´ÐµÑ‚ Ð´Ð¾Ð±Ð°Ð²Ð¸Ñ‚ÑŒ: -->
   <!--   <PublishSingleFile>true</PublishSingleFile> -->
   <!--   <SelfContained>true</SelfContained> -->
   <!--   <RuntimeIdentifier>win-x64</RuntimeIdentifier> -->
@@ -28,4 +28,5 @@
   </PropertyGroup>
 
 </Project>
+
 
