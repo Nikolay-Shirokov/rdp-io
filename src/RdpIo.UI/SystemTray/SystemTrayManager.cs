@@ -249,7 +249,7 @@ public class SystemTrayManager : IDisposable
         try
         {
             // Попытка загрузить иконку из ресурсов или файла
-            string iconPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "app_icon.ico");
+            string iconPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "tray_icon.ico");
 
             if (File.Exists(iconPath))
             {
@@ -258,7 +258,7 @@ public class SystemTrayManager : IDisposable
 
             // Если файл не найден, используем встроенную иконку из ресурсов assembly
             var assembly = Assembly.GetExecutingAssembly();
-            var iconStream = assembly.GetManifestResourceStream("RdpIo.UI.Resources.app_icon.ico");
+            var iconStream = assembly.GetManifestResourceStream("RdpIo.UI.Resources.tray_icon.ico");
 
             if (iconStream != null)
             {

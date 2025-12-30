@@ -13,7 +13,12 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
+    <ApplicationIcon>Resources\app_icon.ico</ApplicationIcon>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="Resources\app_icon.ico" />
+  </ItemGroup>
 
   <!-- Publish Configuration -->
   <!-- ПРИМЕЧАНИЕ: .NET 10 Preview - single-file publish не поддерживается -->
