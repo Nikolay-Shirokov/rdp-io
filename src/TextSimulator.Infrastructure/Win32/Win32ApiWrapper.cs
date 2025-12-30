@@ -21,6 +21,17 @@ public class Win32ApiWrapper : IWin32ApiWrapper
         return SendInput(nInputs, pInputs, size);
     }
 
+    [DllImport("user32.dll", EntryPoint = "MapVirtualKey", SetLastError = true)]
+    private static extern uint NativeMapVirtualKey(uint uCode, uint uMapType);
+
+    /// <summary>
+    /// Translates (maps) a virtual-key code into a scan code or character value
+    /// </summary>
+    public uint MapVirtualKey(uint uCode, uint uMapType)
+    {
+        return NativeMapVirtualKey(uCode, uMapType);
+    }
+
     // ===== Clipboard P/Invoke =====
 
     [DllImport("user32.dll", EntryPoint = "OpenClipboard", SetLastError = true)]

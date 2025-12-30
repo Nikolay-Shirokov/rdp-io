@@ -12,6 +12,11 @@ public interface IWin32ApiWrapper
     /// </summary>
     uint SendInput(uint nInputs, INPUT[] pInputs);
 
+    /// <summary>
+    /// Translates (maps) a virtual-key code into a scan code or character value, or translates a scan code into a virtual-key code.
+    /// </summary>
+    uint MapVirtualKey(uint uCode, uint uMapType);
+
     // ===== Clipboard =====
 
     /// <summary>

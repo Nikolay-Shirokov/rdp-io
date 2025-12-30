@@ -69,6 +69,40 @@ public enum VirtualKeyCode : ushort
     RIGHT = 0x27,
     DOWN = 0x28,
 
+    // Дополнительные клавиши (Win, Apps, и др)
+    LWIN = 0x5B,
+    RWIN = 0x5C,
+    APPS = 0x5D,
+    SLEEP = 0x5F,
+    
+    // NumPud
+    NUMPAD0 = 0x60,
+    NUMPAD1 = 0x61,
+    NUMPAD2 = 0x62,
+    NUMPAD3 = 0x63,
+    NUMPAD4 = 0x64,
+    NUMPAD5 = 0x65,
+    NUMPAD6 = 0x66,
+    NUMPAD7 = 0x67,
+    NUMPAD8 = 0x68,
+    NUMPAD9 = 0x69,
+    MULTIPLY = 0x6A,
+    ADD = 0x6B,
+    SEPARATOR = 0x6C,
+    SUBTRACT = 0x6D,
+    DECIMAL = 0x6E,
+    DIVIDE = 0x6F,
+
+    NUMLOCK = 0x90,
+    SCROLL = 0x91,
+    
+    LSHIFT = 0xA0,
+    RSHIFT = 0xA1,
+    LCONTROL = 0xA2,
+    RCONTROL = 0xA3,
+    LMENU = 0xA4,
+    RMENU = 0xA5,
+
     // OEM keys (зависят от раскладки клавиатуры)
     OEM_1 = 0xBA,      // ';:' на US клавиатуре
     OEM_2 = 0xBF,      // '/?' на US клавиатуре

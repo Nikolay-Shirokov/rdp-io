@@ -176,16 +176,16 @@ public class KeyboardSimulatorEngine : IKeyboardSimulator
         var inputs = new INPUT[]
         {
             // Нажатие Alt
-            CreateKeyInput(VirtualKeyCode.MENU, isKeyUp: false),
+            CreateKeyInput(VirtualKeyCode.LMENU, isKeyUp: false),
 
             // Нажатие Shift
-            CreateKeyInput(VirtualKeyCode.SHIFT, isKeyUp: false),
+            CreateKeyInput(VirtualKeyCode.LSHIFT, isKeyUp: false),
 
             // Отпускание Shift
-            CreateKeyInput(VirtualKeyCode.SHIFT, isKeyUp: true),
+            CreateKeyInput(VirtualKeyCode.LSHIFT, isKeyUp: true),
 
             // Отпускание Alt
-            CreateKeyInput(VirtualKeyCode.MENU, isKeyUp: true)
+            CreateKeyInput(VirtualKeyCode.LMENU, isKeyUp: true)
         };
 
         // Отправка всех событий
@@ -210,18 +210,45 @@ public class KeyboardSimulatorEngine : IKeyboardSimulator
     {
         try
         {
-            // Подготовка INPUT структуры с модификаторами
-            var inputs = PrepareInputStructure(mapping);
+            // 1. Нажатие модификаторов
+            var modifiersDown = new List<INPUT>();
+            if (mapping.RequiresShift) modifiersDown.Add(CreateKeyInput(VirtualKeyCode.LSHIFT, isKeyUp: false));
+            if (mapping.RequiresCtrl) modifiersDown.Add(CreateKeyInput(VirtualKeyCode.LCONTROL, isKeyUp: false));
+            if (mapping.RequiresAlt) modifiersDown.Add(CreateKeyInput(VirtualKeyCode.LMENU, isKeyUp: false));
 
-            // Отправка через Win32 API
-            uint result = _win32Api.SendInput((uint)inputs.Length, inputs);
+            if (modifiersDown.Count > 0)
+            {
+                uint result = _win32Api.SendInput((uint)modifiersDown.Count, modifiersDown.ToArray());
+                // Небольшая задержка для обработки состояния модификаторов в RDP
+                await Task.Delay(20, cancellationToken);
+            }
 
-            // Проверка успешности: SendInput возвращает количество отправленных событий
-            bool success = result == inputs.Length;
+            // 2. Нажатие и отпускание основной клавиши
+            var keyInputs = new List<INPUT>
+            {
+                CreateKeyInput(mapping.VirtualKeyCode, isKeyUp: false),
+                CreateKeyInput(mapping.VirtualKeyCode, isKeyUp: true)
+            };
+            
+            uint keyResult = _win32Api.SendInput((uint)keyInputs.Count, keyInputs.ToArray());
+            bool success = keyResult == keyInputs.Count;
+
+            // 3. Отпускание модификаторов (в обратном порядке)
+            var modifiersUp = new List<INPUT>();
+            if (mapping.RequiresAlt) modifiersUp.Add(CreateKeyInput(VirtualKeyCode.LMENU, isKeyUp: true));
+            if (mapping.RequiresCtrl) modifiersUp.Add(CreateKeyInput(VirtualKeyCode.LCONTROL, isKeyUp: true));
+            if (mapping.RequiresShift) modifiersUp.Add(CreateKeyInput(VirtualKeyCode.LSHIFT, isKeyUp: true));
+
+            if (modifiersUp.Count > 0)
+            {
+                // Задержка перед отпусканием
+                await Task.Delay(20, cancellationToken);
+                _win32Api.SendInput((uint)modifiersUp.Count, modifiersUp.ToArray());
+            }
 
             if (!success)
             {
-                _logger.LogError($"SendInput завершился с ошибкой: ожидалось {inputs.Length}, отправлено {result}");
+                _logger.LogError($"SendInput для клавиши {mapping.VirtualKeyCode} завершился с ошибкой");
             }
 
             return success;
@@ -237,56 +264,26 @@ public class KeyboardSimulatorEngine : IKeyboardSimulator
     /// Подготавливает массив INPUT структур для отправки клавиши с модификаторами
     /// Порядок: нажатие модификаторов -> нажатие клавиши -> отпускание клавиши -> отпускание модификаторов
     /// </summary>
-    private INPUT[] PrepareInputStructure(KeyMapping mapping)
-    {
-        var inputs = new List<INPUT>();
 
-        // Нажатие модификаторов (Shift, Ctrl, Alt если нужно)
-        if (mapping.RequiresShift)
-        {
-            inputs.Add(CreateKeyInput(VirtualKeyCode.SHIFT, isKeyUp: false));
-        }
-
-        if (mapping.RequiresCtrl)
-        {
-            inputs.Add(CreateKeyInput(VirtualKeyCode.CONTROL, isKeyUp: false));
-        }
-
-        if (mapping.RequiresAlt)
-        {
-            inputs.Add(CreateKeyInput(VirtualKeyCode.MENU, isKeyUp: false));
-        }
-
-        // Нажатие основной клавиши
-        inputs.Add(CreateKeyInput(mapping.VirtualKeyCode, isKeyUp: false));
-
-        // Отпускание основной клавиши
-        inputs.Add(CreateKeyInput(mapping.VirtualKeyCode, isKeyUp: true));
-
-        // Отпускание модификаторов (в обратном порядке)
-        if (mapping.RequiresAlt)
-        {
-            inputs.Add(CreateKeyInput(VirtualKeyCode.MENU, isKeyUp: true));
-        }
-
-        if (mapping.RequiresCtrl)
-        {
-            inputs.Add(CreateKeyInput(VirtualKeyCode.CONTROL, isKeyUp: true));
-        }
-
-        if (mapping.RequiresShift)
-        {
-            inputs.Add(CreateKeyInput(VirtualKeyCode.SHIFT, isKeyUp: true));
-        }
-
-        return inputs.ToArray();
-    }
 
     /// <summary>
     /// Создает INPUT структуру для клавиатурного события
     /// </summary>
     private INPUT CreateKeyInput(VirtualKeyCode keyCode, bool isKeyUp)
     {
+        // 0 - MAPVK_VK_TO_VSC (Virtual Key to Scan Code)
+        uint scanCode = _win32Api.MapVirtualKey((uint)keyCode, 0);
+
+        var flags = isKeyUp ? KeyEventFlags.KEYUP : 0;
+        // Добавляем флаг SCANCODE для корректной работы в RDP (особенно для Shift)
+        flags |= KeyEventFlags.SCANCODE;
+        
+        // Для расширенных клавиш (стрелки, Insert, Delete, Home, End, PageUp, PageDown и т.д.)
+        if ((ExtendedKeys.Contains(keyCode)))
+        {
+            flags |= KeyEventFlags.EXTENDEDKEY;
+        }
+
         return new INPUT
         {
             Type = InputType.KEYBOARD,
@@ -295,14 +292,24 @@ public class KeyboardSimulatorEngine : IKeyboardSimulator
                 Keyboard = new KEYBDINPUT
                 {
                     Vk = (ushort)keyCode,
-                    Scan = 0,
-                    Flags = isKeyUp ? KeyEventFlags.KEYUP : 0,
+                    Scan = (ushort)scanCode,
+                    Flags = flags,
                     Time = 0,
                     ExtraInfo = IntPtr.Zero
                 }
             }
         };
     }
+    
+    // Список расширенных клавиш, требующих флага EXTENDEDKEY
+    private static readonly HashSet<VirtualKeyCode> ExtendedKeys = new HashSet<VirtualKeyCode>
+    {
+        VirtualKeyCode.PRIOR, VirtualKeyCode.NEXT, VirtualKeyCode.END, VirtualKeyCode.HOME,
+        VirtualKeyCode.LEFT, VirtualKeyCode.UP, VirtualKeyCode.RIGHT, VirtualKeyCode.DOWN,
+        VirtualKeyCode.INSERT, VirtualKeyCode.DELETE, VirtualKeyCode.LWIN, VirtualKeyCode.RWIN,
+        VirtualKeyCode.APPS, VirtualKeyCode.DIVIDE, VirtualKeyCode.NUMLOCK, VirtualKeyCode.RCONTROL,
+        VirtualKeyCode.RMENU
+    };
 
     /// <summary>
     /// Вычисляет оценочное время до завершения передачи
