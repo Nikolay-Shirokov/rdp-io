@@ -1,4 +1,5 @@
-@echo off
+﻿@echo off
+chcp 65001 >nul
 setlocal enabledelayedexpansion
 REM ==============================================================================
 REM TextSimulator - Self-contained single-file publish (без .NET на целевой машине)
