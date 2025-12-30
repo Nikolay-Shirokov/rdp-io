@@ -40,6 +40,14 @@ publish.cmd
 dotnet build src/TextSimulator.App/TextSimulator.App.csproj --configuration Release --output publish
 ```
 
+### Self-contained single-file publish (без .NET на целевой машине)
+
+```cmd
+publish-selfcontained.cmd
+```
+
+Вывод: `publish-selfcontained/` (EXE включает .NET runtime для win-x64). Требуется .NET SDK на машине сборки.
+
 ## 📦 Portable Deployment
 
 ### Текущая конфигурация (.NET 10 Preview)
@@ -160,3 +168,5 @@ publish/
 1. Установлен ли .NET 10 Runtime
 2. Все ли DLL файлы находятся в одной директории с .exe
 3. Логи в `logs/app.log`
+
+
