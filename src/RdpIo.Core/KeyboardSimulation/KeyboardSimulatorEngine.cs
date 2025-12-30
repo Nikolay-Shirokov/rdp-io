@@ -165,27 +165,27 @@ public class KeyboardSimulatorEngine : IKeyboardSimulator
     // ===== ПРИВАТНЫЕ МЕТОДЫ =====
 
     /// <summary>
-    /// Переключает раскладку клавиатуры через эмуляцию Alt+Shift
+    /// Переключает раскладку клавиатуры через эмуляцию Win+Space
     /// </summary>
     private async Task SwitchLayoutAsync(KeyboardLayout targetLayout, CancellationToken cancellationToken)
     {
         _logger.LogInfo($"Переключение раскладки: {_layoutManager.CurrentLayout} -> {targetLayout}");
 
-        // Эмулируем нажатие Alt+Shift для переключения раскладки
-        // Это стандартная комбинация для переключения раскладки в Windows
+        // Эмулируем нажатие Right Win + Space для переключения раскладки
+        // Правая Win-клавиша иногда снижает риск открытия "Пуск" в RDP
         var inputs = new INPUT[]
         {
-            // Нажатие Alt
-            CreateKeyInput(VirtualKeyCode.LMENU, isKeyUp: false),
+            // Нажатие Right Win
+            CreateKeyInput(VirtualKeyCode.RWIN, isKeyUp: false),
 
-            // Нажатие Shift
-            CreateKeyInput(VirtualKeyCode.LSHIFT, isKeyUp: false),
+            // Нажатие Space
+            CreateKeyInput(VirtualKeyCode.SPACE, isKeyUp: false),
 
-            // Отпускание Shift
-            CreateKeyInput(VirtualKeyCode.LSHIFT, isKeyUp: true),
+            // Отпускание Space
+            CreateKeyInput(VirtualKeyCode.SPACE, isKeyUp: true),
 
-            // Отпускание Alt
-            CreateKeyInput(VirtualKeyCode.LMENU, isKeyUp: true)
+            // Отпускание Right Win
+            CreateKeyInput(VirtualKeyCode.RWIN, isKeyUp: true)
         };
 
         // Отправка всех событий
