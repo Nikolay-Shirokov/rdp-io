@@ -73,21 +73,19 @@ public class KeyboardSimulatorEngine : IKeyboardSimulator
                     continue;
                 }
 
-                // Определение раскладки для символа
-                KeyboardLayout requiredLayout = _layoutManager.GetLayoutForCharacter(currentChar);
+                bool success;
 
-                // Переключение раскладки если нужно
-                if (requiredLayout != KeyboardLayout.Neutral &&
-                    _layoutManager.CurrentLayout != requiredLayout)
+                if (IsControlCharacter(currentChar))
                 {
-                    await SwitchLayoutAsync(requiredLayout, cancellationToken);
+                    // Управляющие символы отправляем как клавиши (Enter/Tab и т.д.)
+                    KeyMapping mapping = _characterMapper.GetKeyMapping(currentChar, KeyboardLayout.English);
+                    success = await SendKeyAsync(mapping, cancellationToken);
                 }
-
-                // Получение маппинга символа
-                KeyMapping mapping = _characterMapper.GetKeyMapping(currentChar, requiredLayout);
-
-                // Эмуляция нажатия клавиши
-                bool success = await SendKeyAsync(mapping, cancellationToken);
+                else
+                {
+                    // Для обычных символов используем Unicode-ввод, чтобы не зависеть от раскладки
+                    success = await SendUnicodeAsync(currentChar, cancellationToken);
+                }
 
                 if (success)
                 {
@@ -151,7 +149,13 @@ public class KeyboardSimulatorEngine : IKeyboardSimulator
     /// </summary>
     public bool IsCharacterSupported(char character)
     {
-        return _characterMapper.IsCharacterSupported(character);
+        if (IsControlCharacter(character))
+        {
+            return _characterMapper.IsCharacterSupported(character);
+        }
+
+        // Unicode-ввод поддерживает любые печатные символы
+        return !char.IsControl(character);
     }
 
     /// <summary>
@@ -173,27 +177,47 @@ public class KeyboardSimulatorEngine : IKeyboardSimulator
 
         // Эмулируем нажатие Right Win + Space для переключения раскладки
         // Правая Win-клавиша иногда снижает риск открытия "Пуск" в RDP
-        var inputs = new INPUT[]
+        // 1) Нажатие Right Win
+        var winDown = new INPUT[]
         {
-            // Нажатие Right Win
-            CreateKeyInput(VirtualKeyCode.RWIN, isKeyUp: false),
+            CreateKeyInput(VirtualKeyCode.RWIN, isKeyUp: false)
+        };
 
-            // Нажатие Space
+        uint winDownResult = _win32Api.SendInput((uint)winDown.Length, winDown);
+        if (winDownResult != winDown.Length)
+        {
+            _logger.LogWarning($"Не все события переключения раскладки отправлены (Win down): {winDownResult}/{winDown.Length}");
+        }
+
+        // Короткая пауза, чтобы RDP корректно принял Win
+        await Task.Delay(30, cancellationToken);
+
+        // 2) Нажатие и отпускание Space
+        var spacePress = new INPUT[]
+        {
             CreateKeyInput(VirtualKeyCode.SPACE, isKeyUp: false),
+            CreateKeyInput(VirtualKeyCode.SPACE, isKeyUp: true)
+        };
 
-            // Отпускание Space
-            CreateKeyInput(VirtualKeyCode.SPACE, isKeyUp: true),
+        uint spaceResult = _win32Api.SendInput((uint)spacePress.Length, spacePress);
+        if (spaceResult != spacePress.Length)
+        {
+            _logger.LogWarning($"Не все события переключения раскладки отправлены (Space): {spaceResult}/{spacePress.Length}");
+        }
 
-            // Отпускание Right Win
+        // Короткая пауза перед отпусканием Win
+        await Task.Delay(30, cancellationToken);
+
+        // 3) Отпускание Right Win
+        var winUp = new INPUT[]
+        {
             CreateKeyInput(VirtualKeyCode.RWIN, isKeyUp: true)
         };
 
-        // Отправка всех событий
-        uint result = _win32Api.SendInput((uint)inputs.Length, inputs);
-
-        if (result != inputs.Length)
+        uint winUpResult = _win32Api.SendInput((uint)winUp.Length, winUp);
+        if (winUpResult != winUp.Length)
         {
-            _logger.LogWarning($"Не все события переключения раскладки отправлены: {result}/{inputs.Length}");
+            _logger.LogWarning($"Не все события переключения раскладки отправлены (Win up): {winUpResult}/{winUp.Length}");
         }
 
         // Обновляем внутреннее состояние
@@ -261,6 +285,31 @@ public class KeyboardSimulatorEngine : IKeyboardSimulator
     }
 
     /// <summary>
+    /// Отправляет символ через Unicode-ввод (не зависит от раскладки)
+    /// </summary>
+    private async Task<bool> SendUnicodeAsync(char character, CancellationToken cancellationToken)
+    {
+        var inputs = new INPUT[]
+        {
+            CreateUnicodeInput(character, isKeyUp: false),
+            CreateUnicodeInput(character, isKeyUp: true)
+        };
+
+        uint result = _win32Api.SendInput((uint)inputs.Length, inputs);
+        bool success = result == inputs.Length;
+
+        if (!success)
+        {
+            _logger.LogError($"Unicode SendInput завершился с ошибкой для символа '{character}' (U+{(int)character:X4})");
+        }
+
+        // Небольшая пауза для стабильности в RDP
+        await Task.Delay(5, cancellationToken);
+
+        return success;
+    }
+
+    /// <summary>
     /// Подготавливает массив INPUT структур для отправки клавиши с модификаторами
     /// Порядок: нажатие модификаторов -> нажатие клавиши -> отпускание клавиши -> отпускание модификаторов
     /// </summary>
@@ -299,6 +348,39 @@ public class KeyboardSimulatorEngine : IKeyboardSimulator
                 }
             }
         };
+    }
+
+    /// <summary>
+    /// Создает INPUT для Unicode-символа (KEYEVENTF.UNICODE)
+    /// </summary>
+    private INPUT CreateUnicodeInput(char character, bool isKeyUp)
+    {
+        var flags = KeyEventFlags.UNICODE;
+        if (isKeyUp)
+        {
+            flags |= KeyEventFlags.KEYUP;
+        }
+
+        return new INPUT
+        {
+            Type = InputType.KEYBOARD,
+            Data = new InputUnion
+            {
+                Keyboard = new KEYBDINPUT
+                {
+                    Vk = 0,
+                    Scan = character,
+                    Flags = flags,
+                    Time = 0,
+                    ExtraInfo = IntPtr.Zero
+                }
+            }
+        };
+    }
+
+    private static bool IsControlCharacter(char character)
+    {
+        return character == '\n' || character == '\t';
     }
     
     // Список расширенных клавиш, требующих флага EXTENDEDKEY
