@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <defs>
+    <style>.app-base{fill:#2A2F35;}.app-accent{fill:#00E0C6;}</style>
+    </defs>
+
+  <path class="app-base" d="M384 128H960V640H832V256H384V128Z"/>
+  
+  <path class="app-base" d="M64 320H768V896H64V320ZM192 768H640V448H192V768Z"/>
+  
+  <path class="app-accent" d="M256 512L448 608L256 704V640L384 608L256 576V512Z"/>
+  <rect class="app-accent" x="480" y="672" width="128" height="32"/>
+</svg>
