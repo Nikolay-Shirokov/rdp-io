@@ -244,8 +244,14 @@ rdp-io использует Unicode-ввод, поэтому раскладка 
 
 ## 📊 Статус проекта
 
-### ✅ Реализовано (v1.0)
+### ✅ Реализовано
 
+**v1.1** (2026-01-12) - Улучшения переводов строк
+- [x] Исправлена обработка символа `\r` (устранено предупреждение)
+- [x] Корректная вставка переводов строк без дублирования
+- [x] Автоматический сброс автоотступов в редакторах
+
+**v1.0** (2025-12-29) - Первый релиз
 - [x] PHASE 1: Foundation (Win32 API, Logger, Settings, State Manager)
 - [x] PHASE 2: Core Logic (Clipboard, Keyboard, Layouts EN/RU)
 - [x] PHASE 3: UI Components (System Tray, Countdown, Progress)
@@ -284,8 +290,8 @@ MIT License - см. [LICENSE](LICENSE)
 
 ## 📞 Поддержка
 
-- **Issues:** [GitHub Issues](https://github.com/your-repo/rdp-io/issues)
-- **Email:** support@textsimulator.com
+- **GitHub:** [https://github.com/Nikolay-Shirokov/rdp-io](https://github.com/Nikolay-Shirokov/rdp-io)
+- **Issues:** [GitHub Issues](https://github.com/Nikolay-Shirokov/rdp-io/issues)
 - **Документация:** [USER_MANUAL.md](USER_MANUAL.md)
 
 ---
