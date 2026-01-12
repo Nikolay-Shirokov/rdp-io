@@ -48,6 +48,26 @@ public enum ApplicationState
     /// <summary>
     /// Settings window is open
     /// </summary>
-    Settings
+    Settings,
+
+    /// <summary>
+    /// User selecting screen region for OCR capture
+    /// </summary>
+    SelectingRegion,
+
+    /// <summary>
+    /// Capturing screenshot of selected region
+    /// </summary>
+    CapturingScreen,
+
+    /// <summary>
+    /// OCR recognition in progress
+    /// </summary>
+    ProcessingOcr,
+
+    /// <summary>
+    /// Displaying OCR results to user
+    /// </summary>
+    ShowingOcrResult
 }
 
