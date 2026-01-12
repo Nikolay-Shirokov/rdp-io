@@ -45,9 +45,10 @@ public class KeyboardSimulatorEngine : IKeyboardSimulator
             throw new ArgumentException("Текст не может быть пустым", nameof(text));
         }
 
-        // Нормализация концов строк: заменяем CRLF на LF, чтобы избежать двойных переносов.
-        // Это гарантирует, что \r и \n не будут обрабатываться как два отдельных переноса.
-        string normalizedText = text.Replace("\r\n", "\n");
+        // Нормализация концов строк:
+        // 1. Заменяем CRLF на LF
+        // 2. Удаляем оставшиеся одиночные \r (чтобы они не считались неподдерживаемыми)
+        string normalizedText = text.Replace("\r\n", "\n").Replace("\r", "");
 
         _logger.LogInfo($"Начало передачи: {normalizedText.Length} символов, стратегия: {_strategy.Name}");
 
@@ -80,6 +81,12 @@ public class KeyboardSimulatorEngine : IKeyboardSimulator
                     // Управляющие символы отправляем как клавиши (Enter/Tab и т.д.)
                     KeyMapping mapping = _characterMapper.GetKeyMapping(currentChar, KeyboardLayout.English);
                     success = await SendKeyAsync(mapping, cancellationToken);
+                    
+                    // После Enter отправляем Home, чтобы сбросить автоотступ в редакторах
+                    if (currentChar == '\n' && success)
+                    {
+                        await SendHomeKeyAsync(cancellationToken);
+                    }
                 }
                 else
                 {
@@ -149,6 +156,12 @@ public class KeyboardSimulatorEngine : IKeyboardSimulator
     /// </summary>
     public bool IsCharacterSupported(char character)
     {
+        // \r будет удален при нормализации, поэтому считаем его поддерживаемым
+        if (character == '\r')
+        {
+            return true;
+        }
+        
         if (IsControlCharacter(character))
         {
             return _characterMapper.IsCharacterSupported(character);
@@ -380,7 +393,31 @@ public class KeyboardSimulatorEngine : IKeyboardSimulator
 
     private static bool IsControlCharacter(char character)
     {
+        // Управляющие символы: перевод строки и табуляция
+        // Примечание: \r удаляется на этапе нормализации (строка 50)
         return character == '\n' || character == '\t';
+    }
+    
+    /// <summary>
+    /// Отправляет нажатие клавиши Home для сброса курсора в начало строки
+    /// Используется после Enter, чтобы избежать дублирования автоотступов
+    /// </summary>
+    private async Task SendHomeKeyAsync(CancellationToken cancellationToken)
+    {
+        var homeInputs = new INPUT[]
+        {
+            CreateKeyInput(VirtualKeyCode.HOME, isKeyUp: false),
+            CreateKeyInput(VirtualKeyCode.HOME, isKeyUp: true)
+        };
+        
+        uint result = _win32Api.SendInput((uint)homeInputs.Length, homeInputs);
+        if (result != homeInputs.Length)
+        {
+            _logger.LogWarning($"Home key SendInput завершился с ошибкой: {result}/{homeInputs.Length}");
+        }
+        
+        // Небольшая задержка для обработки в RDP
+        await Task.Delay(10, cancellationToken);
     }
     
     // Список расширенных клавиш, требующих флага EXTENDEDKEY
