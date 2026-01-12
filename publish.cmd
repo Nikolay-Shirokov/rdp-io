@@ -1,11 +1,13 @@
-@echo off
+﻿@echo off
+chcp 65001 >nul
+setlocal enabledelayedexpansion
 REM ================================================================================
-REM TextSimulator - Build Script
+REM rdp-io - Build Script
 REM ================================================================================
 REM Создает Release сборку приложения для Windows
 REM
 REM Выходной директория: publish\
-REM Главный файл: publish\TextSimulator.App.exe
+REM Главный файл: publish\RdpIo.App.exe
 REM
 REM ПРИМЕЧАНИЕ: .NET 10 Preview - single-file publish пока не поддерживается
 REM После релиза .NET 10 можно будет создавать portable single-file executable
@@ -14,12 +16,12 @@ REM Требования: .NET 10 Runtime на целевой системе
 REM ================================================================================
 
 echo ========================================
-echo TextSimulator - Build Script
+echo rdp-io - Build Script
 echo ========================================
 echo.
 
 REM Определяем путь к проекту
-set PROJECT_PATH=src\TextSimulator.App\TextSimulator.App.csproj
+set PROJECT_PATH=src\RdpIo.App\RdpIo.App.csproj
 set OUTPUT_DIR=publish
 
 echo Очистка предыдущей сборки...
@@ -51,23 +53,23 @@ echo ========================================
 echo.
 
 REM Показываем информацию о файле
-if exist "%OUTPUT_DIR%\TextSimulator.App.exe" (
-    echo Исполняемый файл: %OUTPUT_DIR%\TextSimulator.App.exe
+if exist "%OUTPUT_DIR%\RdpIo.App.exe" (
+    echo Исполняемый файл: %OUTPUT_DIR%\RdpIo.App.exe
     echo.
 
-    REM Получаем размер файла в KB
-    for %%A in ("%OUTPUT_DIR%\TextSimulator.App.exe") do (
+    REM Получаем размер файла в байтах
+    for %%A in ("%OUTPUT_DIR%\RdpIo.App.exe") do (
         set SIZE=%%~zA
     )
 
     REM Конвертируем байты в мегабайты
-    set /a SIZE_MB=%SIZE% / 1048576
+    set /a SIZE_MB=!SIZE! / 1048576
 
-    echo Размер файла: %SIZE_MB% MB
+    echo Размер файла: !SIZE_MB! MB
     echo.
 
     REM Проверяем размер (цель: меньше 50 MB для single-file WPF приложения)
-    if %SIZE_MB% GTR 50 (
+    if !SIZE_MB! GTR 50 (
         echo [ПРЕДУПРЕЖДЕНИЕ] Размер файла превышает 50 MB
     ) else (
         echo [OK] Размер файла в пределах нормы
@@ -82,10 +84,10 @@ if exist "%OUTPUT_DIR%\TextSimulator.App.exe" (
     echo Приложение готово к использованию!
     echo ========================================
     echo.
-    echo Для запуска: %OUTPUT_DIR%\TextSimulator.App.exe
+    echo Для запуска: %OUTPUT_DIR%\RdpIo.App.exe
     echo.
-    echo Настройки сохраняются в: settings.json (в директории с .exe)
-    echo Логи сохраняются в: logs\app.log (в директории с .exe)
+    echo Настройки сохраняются в: settings.json рядом с .exe
+    echo Логи сохраняются в: logs\app.log рядом с .exe
     echo.
 ) else (
     echo [ОШИБКА] Исполняемый файл не найден!
@@ -94,3 +96,5 @@ if exist "%OUTPUT_DIR%\TextSimulator.App.exe" (
 )
 
 pause
+endlocal
+

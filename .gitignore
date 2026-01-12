@@ -92,6 +92,7 @@ nCrunchTemp_*
 
 # Публикация
 publish/
+publish-selfcontained/
 PublishProfiles/
 
 # Файлы настроек пользователя
