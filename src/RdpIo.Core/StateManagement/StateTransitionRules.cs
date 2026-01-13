@@ -74,13 +74,15 @@ public static class StateTransitionRules
         [ApplicationState.CapturingScreen] = new HashSet<ApplicationState>
         {
             ApplicationState.ProcessingOcr,
-            ApplicationState.Failed
+            ApplicationState.Failed,
+            ApplicationState.Idle
         },
 
         [ApplicationState.ProcessingOcr] = new HashSet<ApplicationState>
         {
             ApplicationState.ShowingOcrResult,
-            ApplicationState.Failed
+            ApplicationState.Failed,
+            ApplicationState.Idle
         },
 
         [ApplicationState.ShowingOcrResult] = new HashSet<ApplicationState>

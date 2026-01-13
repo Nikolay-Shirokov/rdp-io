@@ -105,10 +105,10 @@ public partial class RegionSelectionWindow : Window
         }
 
         // Создаем ScreenCaptureRegion из выбранной области
-        // Преобразуем координаты из оконных в абсолютные экранные
+        // Координаты уже абсолютные, т.к. окно занимает весь виртуальный экран
         var region = new ScreenCaptureRegion(
-            x: (int)(_viewModel.SelectionX + SystemParameters.VirtualScreenLeft),
-            y: (int)(_viewModel.SelectionY + SystemParameters.VirtualScreenTop),
+            x: (int)(_viewModel.SelectionX + Left),
+            y: (int)(_viewModel.SelectionY + Top),
             width: (int)_viewModel.SelectionWidth,
             height: (int)_viewModel.SelectionHeight
         );
