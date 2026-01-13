@@ -28,6 +28,15 @@
     </None>
   </ItemGroup>
 
+  <!-- Tesseract Native Libraries (x64) -->
+  <ItemGroup>
+    <None Include="$(NuGetPackageRoot)tesseract\5.2.0\x64\*.dll">
+      <Link>%(Filename)%(Extension)</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </None>
+  </ItemGroup>
+
   <!-- Publish Configuration -->
   <!-- ПРИМЕЧАНИЕ: .NET 10 Preview - single-file publish не поддерживается -->
   <!-- После релиза .NET 10 можно будет добавить: -->
