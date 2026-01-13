@@ -114,5 +114,99 @@ public class Win32ApiWrapper : IWin32ApiWrapper
     {
         return NativeIsClipboardFormatAvailable((uint)format);
     }
+
+    // ===== GDI Screen Capture P/Invoke =====
+
+    [DllImport("user32.dll", EntryPoint = "GetDC", SetLastError = true)]
+    private static extern IntPtr NativeGetDC(IntPtr hWnd);
+
+    [DllImport("user32.dll", EntryPoint = "ReleaseDC", SetLastError = true)]
+    private static extern int NativeReleaseDC(IntPtr hWnd, IntPtr hDC);
+
+    [DllImport("gdi32.dll", EntryPoint = "CreateCompatibleDC", SetLastError = true)]
+    private static extern IntPtr NativeCreateCompatibleDC(IntPtr hDC);
+
+    [DllImport("gdi32.dll", EntryPoint = "CreateCompatibleBitmap", SetLastError = true)]
+    private static extern IntPtr NativeCreateCompatibleBitmap(IntPtr hDC, int nWidth, int nHeight);
+
+    [DllImport("gdi32.dll", EntryPoint = "BitBlt", SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static extern bool NativeBitBlt(IntPtr hdcDest, int nXDest, int nYDest, int nWidth, int nHeight,
+        IntPtr hdcSrc, int nXSrc, int nYSrc, uint dwRop);
+
+    [DllImport("gdi32.dll", EntryPoint = "SelectObject", SetLastError = true)]
+    private static extern IntPtr NativeSelectObject(IntPtr hDC, IntPtr hObject);
+
+    [DllImport("gdi32.dll", EntryPoint = "DeleteDC", SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static extern bool NativeDeleteDC(IntPtr hDC);
+
+    [DllImport("gdi32.dll", EntryPoint = "DeleteObject", SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static extern bool NativeDeleteObject(IntPtr hObject);
+
+    /// <summary>
+    /// Retrieves a handle to a device context (DC) for the client area of a specified window or for the entire screen
+    /// </summary>
+    public IntPtr GetDC(IntPtr hWnd)
+    {
+        return NativeGetDC(hWnd);
+    }
+
+    /// <summary>
+    /// Releases a device context (DC), freeing it for use by other applications
+    /// </summary>
+    public int ReleaseDC(IntPtr hWnd, IntPtr hDC)
+    {
+        return NativeReleaseDC(hWnd, hDC);
+    }
+
+    /// <summary>
+    /// Creates a memory device context (DC) compatible with the specified device
+    /// </summary>
+    public IntPtr CreateCompatibleDC(IntPtr hDC)
+    {
+        return NativeCreateCompatibleDC(hDC);
+    }
+
+    /// <summary>
+    /// Creates a bitmap compatible with the device that is associated with the specified device context
+    /// </summary>
+    public IntPtr CreateCompatibleBitmap(IntPtr hDC, int nWidth, int nHeight)
+    {
+        return NativeCreateCompatibleBitmap(hDC, nWidth, nHeight);
+    }
+
+    /// <summary>
+    /// Performs a bit-block transfer of color data from source to destination DC
+    /// </summary>
+    public bool BitBlt(IntPtr hdcDest, int nXDest, int nYDest, int nWidth, int nHeight, IntPtr hdcSrc, int nXSrc, int nYSrc, uint dwRop)
+    {
+        return NativeBitBlt(hdcDest, nXDest, nYDest, nWidth, nHeight, hdcSrc, nXSrc, nYSrc, dwRop);
+    }
+
+    /// <summary>
+    /// Selects an object into the specified device context (DC)
+    /// </summary>
+    public IntPtr SelectObject(IntPtr hDC, IntPtr hObject)
+    {
+        return NativeSelectObject(hDC, hObject);
+    }
+
+    /// <summary>
+    /// Deletes the specified device context (DC)
+    /// </summary>
+    public bool DeleteDC(IntPtr hDC)
+    {
+        return NativeDeleteDC(hDC);
+    }
+
+    /// <summary>
+    /// Deletes a logical pen, brush, font, bitmap, region, or palette, freeing all system resources
+    /// </summary>
+    public bool DeleteObject(IntPtr hObject)
+    {
+        return NativeDeleteObject(hObject);
+    }
 }
 

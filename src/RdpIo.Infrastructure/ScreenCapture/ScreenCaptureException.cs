@@ -1,4 +1,4 @@
-namespace RdpIo.Core.ScreenCapture;
+namespace RdpIo.Infrastructure.ScreenCapture;
 
 /// <summary>
 /// Exception thrown when screen capture operation fails

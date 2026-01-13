@@ -1,4 +1,4 @@
-namespace RdpIo.Core.ScreenCapture;
+namespace RdpIo.Infrastructure.ScreenCapture;
 
 /// <summary>
 /// Represents a rectangular region of the screen to capture

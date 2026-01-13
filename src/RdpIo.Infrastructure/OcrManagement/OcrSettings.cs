@@ -1,4 +1,4 @@
-namespace RdpIo.Core.OcrManagement;
+namespace RdpIo.Infrastructure.OcrManagement;
 
 /// <summary>
 /// OCR configuration settings

@@ -1,6 +1,6 @@
 using System.Drawing;
 
-namespace RdpIo.Core.OcrManagement;
+namespace RdpIo.Infrastructure.OcrManagement;
 
 /// <summary>
 /// Result of OCR recognition
