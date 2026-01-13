@@ -13,7 +13,8 @@ public static class StateTransitionRules
         [ApplicationState.Idle] = new HashSet<ApplicationState>
         {
             ApplicationState.ValidatingClipboard,
-            ApplicationState.Settings
+            ApplicationState.Settings,
+            ApplicationState.SelectingRegion
         },
 
         [ApplicationState.ValidatingClipboard] = new HashSet<ApplicationState>
@@ -59,6 +60,32 @@ public static class StateTransitionRules
 
         [ApplicationState.Settings] = new HashSet<ApplicationState>
         {
+            ApplicationState.Idle
+        },
+
+        // ===== OCR States =====
+
+        [ApplicationState.SelectingRegion] = new HashSet<ApplicationState>
+        {
+            ApplicationState.CapturingScreen,
+            ApplicationState.Idle
+        },
+
+        [ApplicationState.CapturingScreen] = new HashSet<ApplicationState>
+        {
+            ApplicationState.ProcessingOcr,
+            ApplicationState.Failed
+        },
+
+        [ApplicationState.ProcessingOcr] = new HashSet<ApplicationState>
+        {
+            ApplicationState.ShowingOcrResult,
+            ApplicationState.Failed
+        },
+
+        [ApplicationState.ShowingOcrResult] = new HashSet<ApplicationState>
+        {
+            ApplicationState.Countdown,
             ApplicationState.Idle
         }
     };
@@ -106,6 +133,10 @@ public static class StateTransitionRules
             ApplicationState.Failed => "Завершено с ошибкой",
             ApplicationState.Cancelled => "Отменено",
             ApplicationState.Settings => "Настройки",
+            ApplicationState.SelectingRegion => "Выбор области экрана",
+            ApplicationState.CapturingScreen => "Захват экрана",
+            ApplicationState.ProcessingOcr => "Распознавание текста",
+            ApplicationState.ShowingOcrResult => "Результат OCR",
             _ => "Неизвестное состояние"
         };
     }
