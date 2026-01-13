@@ -11,11 +11,10 @@
         ShowInTaskbar="False">
 
     <Grid>
-        <!-- Полупрозрачный черный фон (overlay) -->
-        <Rectangle Fill="#80000000" />
-
         <!-- Canvas для рисования прямоугольника выделения -->
+        <!-- Background делает Canvas "hit-testable" для событий мыши -->
         <Canvas x:Name="SelectionCanvas"
+                Background="#80000000"
                 MouseLeftButtonDown="Canvas_MouseLeftButtonDown"
                 MouseMove="Canvas_MouseMove"
                 MouseLeftButtonUp="Canvas_MouseLeftButtonUp">
