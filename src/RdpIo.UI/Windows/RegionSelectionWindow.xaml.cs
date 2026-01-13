@@ -104,14 +104,34 @@ public partial class RegionSelectionWindow : Window
             return;
         }
 
-        // Создаем ScreenCaptureRegion из выбранной области
-        // Координаты уже абсолютные, т.к. окно занимает весь виртуальный экран
+        // Получаем DPI масштаб для конвертации WPF координат в физические пиксели
+        var source = PresentationSource.FromVisual(this);
+        double dpiScaleX = 1.0;
+        double dpiScaleY = 1.0;
+
+        if (source != null)
+        {
+            dpiScaleX = source.CompositionTarget.TransformToDevice.M11;
+            dpiScaleY = source.CompositionTarget.TransformToDevice.M22;
+        }
+
+        // ДИАГНОСТИКА
+        System.Diagnostics.Debug.WriteLine($"=== REGION SELECTION DEBUG ===");
+        System.Diagnostics.Debug.WriteLine($"Window.Left: {Left}, Window.Top: {Top}");
+        System.Diagnostics.Debug.WriteLine($"Selection (WPF): X={_viewModel.SelectionX}, Y={_viewModel.SelectionY}, W={_viewModel.SelectionWidth}, H={_viewModel.SelectionHeight}");
+        System.Diagnostics.Debug.WriteLine($"DPI Scale: X={dpiScaleX}, Y={dpiScaleY}");
+        System.Diagnostics.Debug.WriteLine($"VirtualScreen: Left={SystemParameters.VirtualScreenLeft}, Top={SystemParameters.VirtualScreenTop}");
+
+        // Преобразуем WPF координаты в физические пиксели для screen capture
         var region = new ScreenCaptureRegion(
-            x: (int)(_viewModel.SelectionX + Left),
-            y: (int)(_viewModel.SelectionY + Top),
-            width: (int)_viewModel.SelectionWidth,
-            height: (int)_viewModel.SelectionHeight
+            x: (int)((_viewModel.SelectionX + Left) * dpiScaleX),
+            y: (int)((_viewModel.SelectionY + Top) * dpiScaleY),
+            width: (int)(_viewModel.SelectionWidth * dpiScaleX),
+            height: (int)(_viewModel.SelectionHeight * dpiScaleY)
         );
+
+        System.Diagnostics.Debug.WriteLine($"Final region (physical pixels): {region}");
+        System.Diagnostics.Debug.WriteLine($"==============================");
 
         // Вызываем событие с выбранной областью
         RegionSelected?.Invoke(this, region);

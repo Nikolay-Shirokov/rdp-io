@@ -573,6 +573,17 @@ public class ApplicationOrchestrator : IDisposable
     {
         _logger.LogInfo($"Region selected: {region}");
 
+        // Дополнительная диагностика для проверки координат
+        var primaryScreen = System.Windows.Forms.Screen.PrimaryScreen;
+        var allScreens = System.Windows.Forms.Screen.AllScreens;
+        _logger.LogInfo($"Primary screen bounds: {primaryScreen?.Bounds}");
+        _logger.LogInfo($"Total screens: {allScreens.Length}");
+        for (int i = 0; i < allScreens.Length; i++)
+        {
+            _logger.LogInfo($"Screen {i}: Bounds={allScreens[i].Bounds}, Primary={allScreens[i].Primary}");
+        }
+        _logger.LogInfo($"VirtualScreen: ({System.Windows.Forms.SystemInformation.VirtualScreen.X}, {System.Windows.Forms.SystemInformation.VirtualScreen.Y}) {System.Windows.Forms.SystemInformation.VirtualScreen.Width}×{System.Windows.Forms.SystemInformation.VirtualScreen.Height}");
+
         // Сохраняем выбранную область
         _selectedRegion = region;
 
