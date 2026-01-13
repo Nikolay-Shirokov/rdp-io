@@ -28,6 +28,12 @@ public partial class RegionSelectionWindow : Window
     {
         InitializeComponent();
 
+        // Устанавливаем окно на весь виртуальный экран (все мониторы)
+        Left = SystemParameters.VirtualScreenLeft;
+        Top = SystemParameters.VirtualScreenTop;
+        Width = SystemParameters.VirtualScreenWidth;
+        Height = SystemParameters.VirtualScreenHeight;
+
         _viewModel = new RegionSelectionViewModel();
         _viewModel.CancelRequested += (s, e) =>
         {
@@ -99,9 +105,10 @@ public partial class RegionSelectionWindow : Window
         }
 
         // Создаем ScreenCaptureRegion из выбранной области
+        // Преобразуем координаты из оконных в абсолютные экранные
         var region = new ScreenCaptureRegion(
-            x: (int)_viewModel.SelectionX,
-            y: (int)_viewModel.SelectionY,
+            x: (int)(_viewModel.SelectionX + SystemParameters.VirtualScreenLeft),
+            y: (int)(_viewModel.SelectionY + SystemParameters.VirtualScreenTop),
             width: (int)_viewModel.SelectionWidth,
             height: (int)_viewModel.SelectionHeight
         );

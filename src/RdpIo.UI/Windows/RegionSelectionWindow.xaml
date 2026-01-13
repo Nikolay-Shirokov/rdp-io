@@ -7,7 +7,6 @@
         Background="Transparent"
         AllowsTransparency="True"
         Topmost="True"
-        WindowState="Maximized"
         Cursor="Cross"
         ShowInTaskbar="False">
 
