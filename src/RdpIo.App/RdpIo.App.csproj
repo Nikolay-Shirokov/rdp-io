@@ -20,6 +20,14 @@
     <None Include="Resources\app_icon.ico" />
   </ItemGroup>
 
+  <!-- Tesseract OCR Language Files -->
+  <ItemGroup>
+    <None Include="tessdata\**\*.traineddata">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </None>
+  </ItemGroup>
+
   <!-- Publish Configuration -->
   <!-- ПРИМЕЧАНИЕ: .NET 10 Preview - single-file publish не поддерживается -->
   <!-- После релиза .NET 10 можно будет добавить: -->

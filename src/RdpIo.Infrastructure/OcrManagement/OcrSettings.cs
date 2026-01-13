@@ -37,7 +37,8 @@ public enum OcrEngineType
     Windows = 0,
 
     /// <summary>
-    /// Tesseract OCR (if available) - Future implementation
+    /// Tesseract OCR - Better accuracy, especially for colored text and mixed languages
+    /// Requires tessdata folder with language files
     /// </summary>
     Tesseract = 1
 }

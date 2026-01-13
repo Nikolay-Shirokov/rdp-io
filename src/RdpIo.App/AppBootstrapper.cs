@@ -120,8 +120,31 @@ public static class AppBootstrapper
         services.RegisterSingleton<IImageProcessor>(() => new ImageProcessor());
 
         // ===== OCR: TEXT RECOGNITION =====
-        // OCR Engine - Singleton
-        services.RegisterSingleton<IOcrEngine>(() => new WindowsOcrEngine());
+        // OCR Engine - Singleton (dynamically selected based on settings)
+        services.RegisterSingleton<IOcrEngine>(() =>
+        {
+            var settingsManager = services.GetRequiredService<SettingsManager>();
+            var logger = services.GetRequiredService<ILogger>();
+            var settings = settingsManager.CurrentSettings;
+
+            // Select engine based on settings
+            if (settings.OcrEngine.Equals("Tesseract", StringComparison.OrdinalIgnoreCase))
+            {
+                try
+                {
+                    logger.LogInfo("Initializing Tesseract OCR engine");
+                    return new TesseractOcrEngine();
+                }
+                catch (Exception ex)
+                {
+                    logger.LogWarning($"Failed to initialize Tesseract OCR: {ex.Message}. Falling back to Windows OCR.");
+                    return new WindowsOcrEngine();
+                }
+            }
+
+            logger.LogInfo("Using Windows built-in OCR engine");
+            return new WindowsOcrEngine();
+        });
 
         // ===== UI =====
         // System Tray Manager - Singleton
