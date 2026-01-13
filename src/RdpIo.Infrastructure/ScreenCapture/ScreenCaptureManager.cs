@@ -57,19 +57,23 @@ public class ScreenCaptureManager : IScreenCaptureManager
     }
 
     /// <summary>
-    /// Validates if the region is within screen bounds
+    /// Validates if the region is within screen bounds (all monitors)
     /// </summary>
     public bool IsRegionValid(ScreenCaptureRegion region)
     {
         if (region == null)
             return false;
 
-        var screenSize = GetScreenSize();
+        // Use virtual screen bounds to support multi-monitor setups
+        var virtualLeft = System.Windows.Forms.SystemInformation.VirtualScreen.Left;
+        var virtualTop = System.Windows.Forms.SystemInformation.VirtualScreen.Top;
+        var virtualWidth = System.Windows.Forms.SystemInformation.VirtualScreen.Width;
+        var virtualHeight = System.Windows.Forms.SystemInformation.VirtualScreen.Height;
 
-        return region.X >= 0 &&
-               region.Y >= 0 &&
-               region.X + region.Width <= screenSize.Width &&
-               region.Y + region.Height <= screenSize.Height;
+        return region.X >= virtualLeft &&
+               region.Y >= virtualTop &&
+               region.X + region.Width <= virtualLeft + virtualWidth &&
+               region.Y + region.Height <= virtualTop + virtualHeight;
     }
 
     /// <summary>
