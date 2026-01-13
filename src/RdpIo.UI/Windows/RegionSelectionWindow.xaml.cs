@@ -72,10 +72,15 @@ public partial class RegionSelectionWindow : Window
     /// </summary>
     private void Canvas_MouseMove(object sender, System.Windows.Input.MouseEventArgs e)
     {
+        // Обновляем позицию кастомного курсора
+        var position = e.GetPosition(SelectionCanvas);
+        System.Windows.Controls.Canvas.SetLeft(CustomCursor, position.X);
+        System.Windows.Controls.Canvas.SetTop(CustomCursor, position.Y);
+
+        // Обновляем выделение если идёт процесс
         if (!_viewModel.IsSelecting)
             return;
 
-        var position = e.GetPosition(SelectionCanvas);
         _viewModel.UpdateSelection(position);
     }
 

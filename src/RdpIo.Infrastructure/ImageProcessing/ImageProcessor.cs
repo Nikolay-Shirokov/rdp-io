@@ -141,6 +141,44 @@ public class ImageProcessor : IImageProcessor
     }
 
     /// <summary>
+    /// Light preprocessing optimized for upscaled images
+    /// Only grayscale conversion and subtle contrast boost - no noise reduction
+    /// </summary>
+    public Bitmap LightPreprocessForOcr(Bitmap source)
+    {
+        if (source == null)
+            throw new ArgumentNullException(nameof(source));
+
+        // Use faster Graphics-based grayscale conversion
+        var grayscale = new Bitmap(source.Width, source.Height, System.Drawing.Imaging.PixelFormat.Format24bppRgb);
+
+        using (var graphics = System.Drawing.Graphics.FromImage(grayscale))
+        {
+            // Grayscale color matrix
+            var colorMatrix = new System.Drawing.Imaging.ColorMatrix(new float[][]
+            {
+                new float[] {0.299f, 0.299f, 0.299f, 0, 0},
+                new float[] {0.587f, 0.587f, 0.587f, 0, 0},
+                new float[] {0.114f, 0.114f, 0.114f, 0, 0},
+                new float[] {0, 0, 0, 1, 0},
+                new float[] {0, 0, 0, 0, 1}
+            });
+
+            using (var attributes = new System.Drawing.Imaging.ImageAttributes())
+            {
+                attributes.SetColorMatrix(colorMatrix);
+                graphics.DrawImage(source,
+                    new Rectangle(0, 0, source.Width, source.Height),
+                    0, 0, source.Width, source.Height,
+                    System.Drawing.GraphicsUnit.Pixel,
+                    attributes);
+            }
+        }
+
+        return grayscale;
+    }
+
+    /// <summary>
     /// Creates a copy of the bitmap to avoid modifying the original
     /// </summary>
     public Bitmap Clone(Bitmap source)

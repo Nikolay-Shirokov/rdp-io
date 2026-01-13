@@ -51,4 +51,12 @@ public interface IImageProcessor
     /// <param name="scaleFactor">Scale factor (2.0 = double size, 3.0 = triple size)</param>
     /// <returns>Upscaled bitmap</returns>
     Bitmap Upscale(Bitmap source, double scaleFactor = 2.0);
+
+    /// <summary>
+    /// Light preprocessing optimized for upscaled images
+    /// Only grayscale conversion - no noise reduction
+    /// </summary>
+    /// <param name="source">Source bitmap</param>
+    /// <returns>Grayscale bitmap</returns>
+    Bitmap LightPreprocessForOcr(Bitmap source);
 }
