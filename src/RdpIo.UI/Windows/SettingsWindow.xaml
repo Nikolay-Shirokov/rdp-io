@@ -194,6 +194,43 @@
                         </StackPanel>
                     </Border>
 
+                    <!-- Секция: OCR настройки -->
+                    <TextBlock Text="OCR настройки"
+                               FontSize="16"
+                               FontWeight="Bold"
+                               Foreground="#3498DB"
+                               Margin="0,0,0,10"/>
+
+                    <Border Background="#34495E"
+                            CornerRadius="5"
+                            Padding="15"
+                            Margin="0,0,0,20">
+                        <StackPanel>
+                            <!-- Язык распознавания -->
+                            <TextBlock Text="Язык распознавания:"
+                                       Foreground="White"
+                                       Margin="0,0,0,5"/>
+                            <ComboBox ItemsSource="{Binding OcrLanguages}"
+                                      SelectedItem="{Binding SelectedOcrLanguage}"
+                                      Height="35"
+                                      FontSize="14"
+                                      Margin="0,0,0,15"/>
+
+                            <!-- Предобработка изображения -->
+                            <CheckBox Content="Включить предобработку изображения для OCR"
+                                      IsChecked="{Binding OcrEnablePreprocessing}"
+                                      Foreground="White"
+                                      FontSize="14"
+                                      Margin="0,0,0,5"/>
+
+                            <TextBlock Text="(Улучшает качество распознавания: серый градиент, контраст, снижение шума)"
+                                       Foreground="#95A5A6"
+                                       FontSize="11"
+                                       Margin="20,0,0,5"
+                                       TextWrapping="Wrap"/>
+                        </StackPanel>
+                    </Border>
+
                 </StackPanel>
             </ScrollViewer>
 

@@ -22,6 +22,8 @@ public class SettingsViewModel : INotifyPropertyChanged
     private int _clipboardCacheLifetime;
     private LogLevel _selectedLogLevel;
     private int _maxLogFileSizeMB;
+    private string _selectedOcrLanguage;
+    private bool _ocrEnablePreprocessing;
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
@@ -39,6 +41,8 @@ public class SettingsViewModel : INotifyPropertyChanged
         _clipboardCacheLifetime = settings.ClipboardCacheLifetimeSeconds;
         _selectedLogLevel = settings.LogLevel;
         _maxLogFileSizeMB = settings.MaxLogFileSizeMB;
+        _selectedOcrLanguage = settings.OcrLanguage;
+        _ocrEnablePreprocessing = settings.OcrEnablePreprocessing;
 
         // Команды
         SaveCommand = new RelayCommand(_ => Save(), _ => CanSave());
@@ -192,6 +196,38 @@ public class SettingsViewModel : INotifyPropertyChanged
     }
 
     /// <summary>
+    /// Язык OCR распознавания
+    /// </summary>
+    public string SelectedOcrLanguage
+    {
+        get => _selectedOcrLanguage;
+        set
+        {
+            if (_selectedOcrLanguage != value)
+            {
+                _selectedOcrLanguage = value;
+                OnPropertyChanged();
+            }
+        }
+    }
+
+    /// <summary>
+    /// Включить предобработку изображения для OCR
+    /// </summary>
+    public bool OcrEnablePreprocessing
+    {
+        get => _ocrEnablePreprocessing;
+        set
+        {
+            if (_ocrEnablePreprocessing != value)
+            {
+                _ocrEnablePreprocessing = value;
+                OnPropertyChanged();
+            }
+        }
+    }
+
+    /// <summary>
     /// Список доступных режимов передачи
     /// </summary>
     public TransmissionMode[] TransmissionModes { get; } =
@@ -202,6 +238,24 @@ public class SettingsViewModel : INotifyPropertyChanged
     /// </summary>
     public LogLevel[] LogLevels { get; } =
         (LogLevel[])Enum.GetValues(typeof(LogLevel));
+
+    /// <summary>
+    /// Список доступных языков OCR
+    /// </summary>
+    public string[] OcrLanguages { get; } = new[]
+    {
+        "en",      // English
+        "ru",      // Russian
+        "en-US",   // English (United States)
+        "en-GB",   // English (United Kingdom)
+        "ru-RU",   // Russian (Russia)
+        "de",      // German
+        "fr",      // French
+        "es",      // Spanish
+        "zh-CN",   // Chinese (Simplified)
+        "ja",      // Japanese
+        "ko"       // Korean
+    };
 
     #endregion
 
@@ -231,6 +285,10 @@ public class SettingsViewModel : INotifyPropertyChanged
         if (_maxLogFileSizeMB < 1 || _maxLogFileSizeMB > 100)
             return false;
 
+        // Язык OCR не должен быть пустым
+        if (string.IsNullOrWhiteSpace(_selectedOcrLanguage))
+            return false;
+
         return true;
     }
 
@@ -246,6 +304,8 @@ public class SettingsViewModel : INotifyPropertyChanged
         _settings.ClipboardCacheLifetimeSeconds = _clipboardCacheLifetime;
         _settings.LogLevel = _selectedLogLevel;
         _settings.MaxLogFileSizeMB = _maxLogFileSizeMB;
+        _settings.OcrLanguage = _selectedOcrLanguage;
+        _settings.OcrEnablePreprocessing = _ocrEnablePreprocessing;
 
         Saved?.Invoke(this, EventArgs.Empty);
     }
