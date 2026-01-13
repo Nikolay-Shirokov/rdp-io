@@ -669,16 +669,42 @@ public class ApplicationOrchestrator : IDisposable
     {
         try
         {
+            var settings = _settingsManager.CurrentSettings;
+
+            // Проверяем доступность языка
+            var availableLanguages = await _ocrEngine.GetAvailableLanguagesAsync();
+            _logger.LogInfo($"Available OCR languages: {string.Join(", ", availableLanguages)}");
+
+            var isLanguageAvailable = await _ocrEngine.IsLanguageAvailableAsync(settings.OcrLanguage);
+            if (!isLanguageAvailable)
+            {
+                _logger.LogWarning($"Requested OCR language '{settings.OcrLanguage}' is not available on this system");
+                _logger.LogInfo($"Trying to use first available language: {availableLanguages.FirstOrDefault()}");
+            }
+            else
+            {
+                _logger.LogInfo($"Using OCR language: {settings.OcrLanguage}");
+            }
+
             // Stage 2: Обработка изображения
             _ocrProcessingWindow?.SetStageProcessing();
 
-            var settings = _settingsManager.CurrentSettings;
             Bitmap processedImage = image;
+
+            // Сохраняем оригинальное изображение для отладки
+            var debugPath = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, $"debug_original_{DateTime.Now:HHmmss}.png");
+            image.Save(debugPath, System.Drawing.Imaging.ImageFormat.Png);
+            _logger.LogInfo($"Debug: Original image saved to {debugPath}");
 
             if (settings.OcrEnablePreprocessing)
             {
                 processedImage = _imageProcessor.PreprocessForOcr(image, enableNoiseReduction: true);
                 image.Dispose();
+
+                // Сохраняем обработанное изображение для отладки
+                var debugProcessedPath = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, $"debug_processed_{DateTime.Now:HHmmss}.png");
+                processedImage.Save(debugProcessedPath, System.Drawing.Imaging.ImageFormat.Png);
+                _logger.LogInfo($"Debug: Processed image saved to {debugProcessedPath}");
             }
 
             // Stage 3: Распознавание текста
@@ -695,7 +721,8 @@ public class ApplicationOrchestrator : IDisposable
             var result = await _ocrEngine.RecognizeTextAsync(processedImage, ocrSettings);
             processedImage.Dispose();
 
-            _logger.LogInfo($"OCR completed: {result.CharacterCount} characters, {result.LineCount} lines");
+            _logger.LogInfo($"OCR completed: {result.CharacterCount} characters, {result.LineCount} lines, Confidence: {result.Confidence:P0}");
+            _logger.LogInfo($"Recognized text preview: {(result.Text.Length > 100 ? result.Text.Substring(0, 100) + "..." : result.Text)}");
 
             // Сохраняем результат
             _ocrRecognizedText = result.Text;
