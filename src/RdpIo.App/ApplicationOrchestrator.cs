@@ -703,10 +703,12 @@ public class ApplicationOrchestrator : IDisposable
             // Закрываем окно обработки
             CloseOcrProcessingWindow();
 
-            // Показываем результат
-            ShowOcrResult(result);
-
-            _stateManager.TransitionTo(ApplicationState.ShowingOcrResult);
+            // Показываем результат в UI потоке
+            System.Windows.Application.Current.Dispatcher.Invoke(() =>
+            {
+                ShowOcrResult(result);
+                _stateManager.TransitionTo(ApplicationState.ShowingOcrResult);
+            });
         }
         catch (Exception ex)
         {
