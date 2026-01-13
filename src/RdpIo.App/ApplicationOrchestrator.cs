@@ -625,23 +625,23 @@ public class ApplicationOrchestrator : IDisposable
     {
         _logger.LogInfo("Starting screen capture...");
 
-        // Показываем окно обработки
-        _ocrProcessingWindow = new OcrProcessingWindow();
-        _ocrProcessingWindow.SetStageCapturing();
-        _ocrProcessingWindow.Show();
-
         try
         {
             if (_selectedRegion == null)
                 throw new InvalidOperationException("No region selected");
 
-            // Небольшая задержка чтобы окно успело скрыться
-            await Task.Delay(100);
+            // Задержка перед захватом, чтобы все окна (в т.ч. RegionSelectionWindow) полностью исчезли
+            await Task.Delay(300);
 
             // Захватываем выбранную область экрана
             using var capturedImage = await _screenCaptureManager.CaptureRegionAsync(_selectedRegion);
 
             _logger.LogInfo($"Screen captured: {capturedImage.Width}x{capturedImage.Height}");
+
+            // Теперь показываем окно обработки (после захвата!)
+            _ocrProcessingWindow = new OcrProcessingWindow();
+            _ocrProcessingWindow.SetStageCapturing();
+            _ocrProcessingWindow.Show();
 
             // Сохраняем изображение временно для обработки
             var imageCopy = new Bitmap(capturedImage);
