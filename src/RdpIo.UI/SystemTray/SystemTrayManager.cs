@@ -26,6 +26,11 @@ public class SystemTrayManager : IDisposable
     public event EventHandler? StartTransmissionRequested;
 
     /// <summary>
+    /// Событие запроса запуска OCR захвата
+    /// </summary>
+    public event EventHandler? StartOcrCaptureRequested;
+
+    /// <summary>
     /// Событие запроса открытия настроек
     /// </summary>
     public event EventHandler? SettingsRequested;
@@ -73,6 +78,8 @@ public class SystemTrayManager : IDisposable
             Font = new Font(_contextMenu.Font, FontStyle.Bold)
         };
 
+        var ocrCaptureItem = new ToolStripMenuItem("📷 Захват текста (OCR)", null, OnOcrCaptureClick);
+
         var settingsItem = new ToolStripMenuItem("⚙ Настройки", null, OnSettingsClick);
         var aboutItem = new ToolStripMenuItem("ℹ О программе", null, OnAboutClick);
         var exitItem = new ToolStripMenuItem("✖ Выход", null, OnExitClick);
@@ -80,6 +87,7 @@ public class SystemTrayManager : IDisposable
         _contextMenu.Items.AddRange(new ToolStripItem[]
         {
             startItem,
+            ocrCaptureItem,
             new ToolStripSeparator(),
             settingsItem,
             aboutItem,
@@ -135,6 +143,10 @@ public class SystemTrayManager : IDisposable
             ApplicationState.Countdown => "rdp-io - Обратный отсчет...",
             ApplicationState.Transmitting => "rdp-io - Передача текста...",
             ApplicationState.Paused => "rdp-io - Приостановлено",
+            ApplicationState.SelectingRegion => "rdp-io - Выбор области...",
+            ApplicationState.CapturingScreen => "rdp-io - Захват экрана...",
+            ApplicationState.ProcessingOcr => "rdp-io - Распознавание...",
+            ApplicationState.ShowingOcrResult => "rdp-io - Результат OCR",
             _ => "rdp-io"
         };
 
@@ -178,6 +190,15 @@ public class SystemTrayManager : IDisposable
     private void OnStartClick(object? sender, EventArgs e)
     {
         OnStartTransmission();
+    }
+
+    /// <summary>
+    /// Обработчик клика по пункту "Захват текста (OCR)"
+    /// </summary>
+    private void OnOcrCaptureClick(object? sender, EventArgs e)
+    {
+        _logger.LogInfo("OCR capture requested from System Tray");
+        StartOcrCaptureRequested?.Invoke(this, EventArgs.Empty);
     }
 
     /// <summary>

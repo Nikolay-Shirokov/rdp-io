@@ -51,5 +51,17 @@ public class AppSettings
     /// Maximum log file size in MB
     /// </summary>
     public int MaxLogFileSizeMB { get; set; } = 10;
+
+    // ===== OCR Settings =====
+
+    /// <summary>
+    /// OCR language code (e.g., "en", "ru", "en-US")
+    /// </summary>
+    public string OcrLanguage { get; set; } = "en";
+
+    /// <summary>
+    /// Enable image preprocessing before OCR
+    /// </summary>
+    public bool OcrEnablePreprocessing { get; set; } = true;
 }
 
