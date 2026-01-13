@@ -57,7 +57,7 @@ public class AppSettings
     /// <summary>
     /// OCR language code (e.g., "en", "ru", "en-US") or "auto" for automatic detection
     /// </summary>
-    public string OcrLanguage { get; set; } = "auto";
+    public string OcrLanguage { get; set; } = "ru";
 
     /// <summary>
     /// Enable image preprocessing before OCR
