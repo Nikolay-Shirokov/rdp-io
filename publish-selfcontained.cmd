@@ -48,6 +48,23 @@ if not exist "%OUTPUT_DIR%\RdpIo.App.exe" (
     exit /b 1
 )
 
+echo.
+echo Копирование Tesseract нативных библиотек...
+
+REM Определяем путь к NuGet пакетам
+set NUGET_PACKAGES=%USERPROFILE%\.nuget\packages\tesseract\5.2.0\x64
+
+if exist "%NUGET_PACKAGES%\*.dll" (
+    copy /Y "%NUGET_PACKAGES%\*.dll" "%OUTPUT_DIR%\" >nul
+    if errorlevel 1 (
+        echo [ПРЕДУПРЕЖДЕНИЕ] Не удалось скопировать Tesseract DLL. OCR может не работать.
+    ) else (
+        echo Tesseract DLL скопированы успешно.
+    )
+) else (
+    echo [ПРЕДУПРЕЖДЕНИЕ] Tesseract DLL не найдены в NuGet кэше. OCR может не работать.
+)
+
 for %%A in ("%OUTPUT_DIR%\RdpIo.App.exe") do (
     set SIZE=%%~zA
 )
@@ -58,6 +75,12 @@ echo ========================================
 echo Публикация завершена.
 echo Выходной файл: %OUTPUT_DIR%\RdpIo.App.exe
 if defined SIZE_MB echo Размер: !SIZE_MB! MB
+echo.
+echo Структура:
+echo   RdpIo.App.exe          (основное приложение)
+echo   tessdata\              (языковые файлы OCR)
+echo   tesseract50.dll        (Tesseract движок)
+echo   leptonica-1.82.0.dll   (библиотека обработки изображений)
 
 endlocal
 

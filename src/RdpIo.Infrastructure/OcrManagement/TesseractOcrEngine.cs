@@ -67,7 +67,9 @@ public class TesseractOcrEngine : IOcrEngine
             }
             catch (Exception ex)
             {
-                throw new OcrException($"Tesseract OCR failed: {ex.Message}", ex);
+                var innerMsg = ex.InnerException?.Message ?? "No inner exception";
+                var stackTrace = ex.StackTrace ?? "No stack trace";
+                throw new OcrException($"Tesseract OCR failed: {ex.Message}. Inner: {innerMsg}. Stack: {stackTrace}", ex);
             }
         });
     }
