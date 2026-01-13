@@ -22,6 +22,10 @@ public partial class App : Application
     {
         try
         {
+            // Приложение работает через System Tray без главного окна
+            // Не завершать при закрытии последнего окна
+            ShutdownMode = ShutdownMode.OnExplicitShutdown;
+
             // Конфигурируем Dependency Injection
             _serviceProvider = AppBootstrapper.ConfigureServices();
 
