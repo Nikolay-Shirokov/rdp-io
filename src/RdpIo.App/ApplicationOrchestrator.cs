@@ -671,20 +671,9 @@ public class ApplicationOrchestrator : IDisposable
         {
             var settings = _settingsManager.CurrentSettings;
 
-            // Проверяем доступность языка
+            // Проверяем доступность языков
             var availableLanguages = await _ocrEngine.GetAvailableLanguagesAsync();
             _logger.LogInfo($"Available OCR languages: {string.Join(", ", availableLanguages)}");
-
-            var isLanguageAvailable = await _ocrEngine.IsLanguageAvailableAsync(settings.OcrLanguage);
-            if (!isLanguageAvailable)
-            {
-                _logger.LogWarning($"Requested OCR language '{settings.OcrLanguage}' is not available on this system");
-                _logger.LogInfo($"Trying to use first available language: {availableLanguages.FirstOrDefault()}");
-            }
-            else
-            {
-                _logger.LogInfo($"Using OCR language: {settings.OcrLanguage}");
-            }
 
             // Stage 2: Обработка изображения
             _ocrProcessingWindow?.SetStageProcessing();
@@ -710,15 +699,37 @@ public class ApplicationOrchestrator : IDisposable
             // Stage 3: Распознавание текста
             _ocrProcessingWindow?.SetStageRecognizing();
 
-            var ocrSettings = new OcrSettings
-            {
-                Language = settings.OcrLanguage,
-                EnablePreprocessing = false, // Уже обработали
-                EngineType = OcrEngineType.Windows,
-                TimeoutSeconds = 30
-            };
+            OcrResult result;
 
-            var result = await _ocrEngine.RecognizeTextAsync(processedImage, ocrSettings);
+            // Автоопределение языка или конкретный язык
+            if (settings.OcrLanguage.Equals("auto", StringComparison.OrdinalIgnoreCase))
+            {
+                _logger.LogInfo("Auto-detecting OCR language...");
+                result = await RecognizeWithAutoLanguageAsync(processedImage, availableLanguages);
+            }
+            else
+            {
+                // Проверяем доступность указанного языка
+                var isLanguageAvailable = await _ocrEngine.IsLanguageAvailableAsync(settings.OcrLanguage);
+                if (!isLanguageAvailable)
+                {
+                    _logger.LogWarning($"Requested OCR language '{settings.OcrLanguage}' is not available. Falling back to auto-detection.");
+                    result = await RecognizeWithAutoLanguageAsync(processedImage, availableLanguages);
+                }
+                else
+                {
+                    _logger.LogInfo($"Using OCR language: {settings.OcrLanguage}");
+                    var ocrSettings = new OcrSettings
+                    {
+                        Language = settings.OcrLanguage,
+                        EnablePreprocessing = false,
+                        EngineType = OcrEngineType.Windows,
+                        TimeoutSeconds = 30
+                    };
+                    result = await _ocrEngine.RecognizeTextAsync(processedImage, ocrSettings);
+                }
+            }
+
             processedImage.Dispose();
 
             _logger.LogInfo($"OCR completed: {result.CharacterCount} characters, {result.LineCount} lines, Confidence: {result.Confidence:P0}");
@@ -747,6 +758,72 @@ public class ApplicationOrchestrator : IDisposable
                 ToolTipIcon.Error);
             _stateManager.TransitionTo(ApplicationState.Idle);
         }
+    }
+
+    /// <summary>
+    /// Пробует распознавание с несколькими языками и выбирает лучший результат
+    /// </summary>
+    private async Task<OcrResult> RecognizeWithAutoLanguageAsync(Bitmap image, IReadOnlyList<string> availableLanguages)
+    {
+        // Приоритетные языки для проверки (в порядке приоритета)
+        var languagesToTry = new[] { "ru", "en", "ru-RU", "en-US", "en-GB" };
+
+        // Фильтруем только те, что доступны в системе
+        var testLanguages = languagesToTry
+            .Where(lang => availableLanguages.Contains(lang, StringComparer.OrdinalIgnoreCase))
+            .ToList();
+
+        // Если нет приоритетных языков, берем первые доступные
+        if (!testLanguages.Any())
+        {
+            testLanguages = availableLanguages.Take(3).ToList();
+        }
+
+        _logger.LogInfo($"Auto-detection: trying languages: {string.Join(", ", testLanguages)}");
+
+        OcrResult? bestResult = null;
+        double bestScore = 0;
+        string? bestLanguage = null;
+
+        foreach (var language in testLanguages)
+        {
+            try
+            {
+                var ocrSettings = new OcrSettings
+                {
+                    Language = language,
+                    EnablePreprocessing = false,
+                    EngineType = OcrEngineType.Windows,
+                    TimeoutSeconds = 10
+                };
+
+                var result = await _ocrEngine.RecognizeTextAsync(image, ocrSettings);
+
+                // Оценка: уверенность * количество символов (чем больше, тем лучше)
+                double score = result.Confidence * result.CharacterCount;
+
+                _logger.LogInfo($"Language '{language}': {result.CharacterCount} chars, confidence {result.Confidence:P0}, score {score:F0}");
+
+                if (score > bestScore)
+                {
+                    bestScore = score;
+                    bestResult = result;
+                    bestLanguage = language;
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning($"Failed to recognize with language '{language}': {ex.Message}");
+            }
+        }
+
+        if (bestResult == null)
+        {
+            throw new OcrException("Failed to recognize text with any available language");
+        }
+
+        _logger.LogInfo($"Best result: language '{bestLanguage}' with score {bestScore:F0}");
+        return bestResult;
     }
 
     /// <summary>

@@ -244,6 +244,7 @@ public class SettingsViewModel : INotifyPropertyChanged
     /// </summary>
     public string[] OcrLanguages { get; } = new[]
     {
+        "auto",    // Automatic language detection
         "en",      // English
         "ru",      // Russian
         "en-US",   // English (United States)
