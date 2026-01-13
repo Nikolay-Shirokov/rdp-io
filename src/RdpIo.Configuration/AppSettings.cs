@@ -62,6 +62,6 @@ public class AppSettings
     /// <summary>
     /// Enable image preprocessing before OCR
     /// </summary>
-    public bool OcrEnablePreprocessing { get; set; } = true;
+    public bool OcrEnablePreprocessing { get; set; } = false;
 }
 
