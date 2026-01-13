@@ -696,15 +696,29 @@ public class ApplicationOrchestrator : IDisposable
             image.Save(debugPath, System.Drawing.Imaging.ImageFormat.Png);
             _logger.LogInfo($"Debug: Original image saved to {debugPath}");
 
+            // Upscale для улучшения распознавания мелкого текста (всегда применяется)
+            _logger.LogInfo($"Upscaling image 2x for better OCR accuracy ({image.Width}×{image.Height} → {image.Width * 2}×{image.Height * 2})");
+            var upscaled = _imageProcessor.Upscale(image, scaleFactor: 2.0);
+            image.Dispose();
+            processedImage = upscaled;
+
             if (settings.OcrEnablePreprocessing)
             {
-                processedImage = _imageProcessor.PreprocessForOcr(image, enableNoiseReduction: true);
-                image.Dispose();
+                var preprocessed = _imageProcessor.PreprocessForOcr(processedImage, enableNoiseReduction: true);
+                processedImage.Dispose();
+                processedImage = preprocessed;
 
                 // Сохраняем обработанное изображение для отладки
                 var debugProcessedPath = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, $"debug_processed_{DateTime.Now:HHmmss}.png");
                 processedImage.Save(debugProcessedPath, System.Drawing.Imaging.ImageFormat.Png);
                 _logger.LogInfo($"Debug: Processed image saved to {debugProcessedPath}");
+            }
+            else
+            {
+                // Сохраняем upscaled изображение для отладки
+                var debugUpscaledPath = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, $"debug_upscaled_{DateTime.Now:HHmmss}.png");
+                processedImage.Save(debugUpscaledPath, System.Drawing.Imaging.ImageFormat.Png);
+                _logger.LogInfo($"Debug: Upscaled image saved to {debugUpscaledPath}");
             }
 
             // Stage 3: Распознавание текста

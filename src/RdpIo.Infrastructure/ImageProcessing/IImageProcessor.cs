@@ -43,4 +43,12 @@ public interface IImageProcessor
     /// <param name="source">Source bitmap</param>
     /// <returns>Copy of the bitmap</returns>
     Bitmap Clone(Bitmap source);
+
+    /// <summary>
+    /// Upscales image to improve OCR accuracy for small text
+    /// </summary>
+    /// <param name="source">Source bitmap</param>
+    /// <param name="scaleFactor">Scale factor (2.0 = double size, 3.0 = triple size)</param>
+    /// <returns>Upscaled bitmap</returns>
+    Bitmap Upscale(Bitmap source, double scaleFactor = 2.0);
 }

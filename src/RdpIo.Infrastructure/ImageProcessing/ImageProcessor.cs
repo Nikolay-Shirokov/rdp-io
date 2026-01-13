@@ -152,6 +152,37 @@ public class ImageProcessor : IImageProcessor
     }
 
     /// <summary>
+    /// Upscales image to improve OCR accuracy for small text
+    /// Uses high-quality bicubic interpolation
+    /// </summary>
+    public Bitmap Upscale(Bitmap source, double scaleFactor = 2.0)
+    {
+        if (source == null)
+            throw new ArgumentNullException(nameof(source));
+
+        if (scaleFactor <= 0 || scaleFactor > 10)
+            throw new ArgumentException("Scale factor must be between 0 and 10", nameof(scaleFactor));
+
+        int newWidth = (int)(source.Width * scaleFactor);
+        int newHeight = (int)(source.Height * scaleFactor);
+
+        var upscaled = new Bitmap(newWidth, newHeight);
+
+        using (var graphics = System.Drawing.Graphics.FromImage(upscaled))
+        {
+            // High quality settings for upscaling
+            graphics.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic;
+            graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.HighQuality;
+            graphics.PixelOffsetMode = System.Drawing.Drawing2D.PixelOffsetMode.HighQuality;
+            graphics.CompositingQuality = System.Drawing.Drawing2D.CompositingQuality.HighQuality;
+
+            graphics.DrawImage(source, 0, 0, newWidth, newHeight);
+        }
+
+        return upscaled;
+    }
+
+    /// <summary>
     /// Clamps a value between min and max
     /// </summary>
     private static int Clamp(int value, int min, int max)
