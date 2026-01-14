@@ -22,6 +22,7 @@ public class SettingsViewModel : INotifyPropertyChanged
     private int _clipboardCacheLifetime;
     private LogLevel _selectedLogLevel;
     private int _maxLogFileSizeMB;
+    private string _selectedOcrEngine;
     private string _selectedOcrLanguage;
     private bool _ocrEnablePreprocessing;
 
@@ -41,6 +42,7 @@ public class SettingsViewModel : INotifyPropertyChanged
         _clipboardCacheLifetime = settings.ClipboardCacheLifetimeSeconds;
         _selectedLogLevel = settings.LogLevel;
         _maxLogFileSizeMB = settings.MaxLogFileSizeMB;
+        _selectedOcrEngine = settings.OcrEngine;
         _selectedOcrLanguage = settings.OcrLanguage;
         _ocrEnablePreprocessing = settings.OcrEnablePreprocessing;
 
@@ -196,6 +198,22 @@ public class SettingsViewModel : INotifyPropertyChanged
     }
 
     /// <summary>
+    /// OCR движок
+    /// </summary>
+    public string SelectedOcrEngine
+    {
+        get => _selectedOcrEngine;
+        set
+        {
+            if (_selectedOcrEngine != value)
+            {
+                _selectedOcrEngine = value;
+                OnPropertyChanged();
+            }
+        }
+    }
+
+    /// <summary>
     /// Язык OCR распознавания
     /// </summary>
     public string SelectedOcrLanguage
@@ -238,6 +256,11 @@ public class SettingsViewModel : INotifyPropertyChanged
     /// </summary>
     public LogLevel[] LogLevels { get; } =
         (LogLevel[])Enum.GetValues(typeof(LogLevel));
+
+    /// <summary>
+    /// Список доступных OCR движков
+    /// </summary>
+    public string[] OcrEngines { get; } = new[] { "Tesseract", "Windows" };
 
     /// <summary>
     /// Список доступных языков OCR
@@ -305,6 +328,7 @@ public class SettingsViewModel : INotifyPropertyChanged
         _settings.ClipboardCacheLifetimeSeconds = _clipboardCacheLifetime;
         _settings.LogLevel = _selectedLogLevel;
         _settings.MaxLogFileSizeMB = _maxLogFileSizeMB;
+        _settings.OcrEngine = _selectedOcrEngine;
         _settings.OcrLanguage = _selectedOcrLanguage;
         _settings.OcrEnablePreprocessing = _ocrEnablePreprocessing;
 

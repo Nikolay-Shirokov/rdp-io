@@ -68,13 +68,23 @@ echo   "SoundOnStart": true,
 echo   "SoundOnComplete": true,
 echo   "SoundOnError": true,
 echo   "ClipboardCacheLifetimeSeconds": 5,
-echo   "LogLevel": 1,
+echo   "LogLevel": 4,
 echo   "MaxLogFileSizeMB": 10,
 echo   "OcrEngine": "Windows",
 echo   "OcrLanguage": "ru",
 echo   "OcrEnablePreprocessing": false
 echo }
 ) > "%OUTPUT_DIR%\settings.json"
+
+echo.
+echo Копирование документации...
+copy "docs\readme.html" "%OUTPUT_DIR%\readme.html" >nul
+if exist "%OUTPUT_DIR%\readme.html" (
+    echo readme.html скопирован
+) else (
+    echo [ПРЕДУПРЕЖДЕНИЕ] Не удалось скопировать readme.html
+)
+
 echo.
 echo ПРИМЕЧАНИЕ: Single-file exe использует Windows OCR (встроенный).
 echo             Tesseract OCR несовместим с single-file deployment.
