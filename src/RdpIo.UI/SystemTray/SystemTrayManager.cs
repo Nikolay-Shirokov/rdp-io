@@ -78,10 +78,12 @@ public class SystemTrayManager : IDisposable
         _contextMenu = new ContextMenuStrip();
 
         // Пункты меню
-        var startItem = new ToolStripMenuItem("▶ Запустить передачу", null, OnStartClick)
+        var showWindowItem = new ToolStripMenuItem("🖥 Показать окно", null, OnShowWindowClick)
         {
             Font = new Font(_contextMenu.Font, FontStyle.Bold)
         };
+
+        var startItem = new ToolStripMenuItem("📋 Напечатать текст из буфера обмена", null, OnStartClick);
 
         var ocrCaptureItem = new ToolStripMenuItem("📷 Захват текста (OCR)", null, OnOcrCaptureClick);
 
@@ -91,6 +93,8 @@ public class SystemTrayManager : IDisposable
 
         _contextMenu.Items.AddRange(new ToolStripItem[]
         {
+            showWindowItem,
+            new ToolStripSeparator(),
             startItem,
             ocrCaptureItem,
             new ToolStripSeparator(),
@@ -191,7 +195,16 @@ public class SystemTrayManager : IDisposable
     }
 
     /// <summary>
-    /// Обработчик клика по пункту "Запустить передачу"
+    /// Обработчик клика по пункту "Показать окно"
+    /// </summary>
+    private void OnShowWindowClick(object? sender, EventArgs e)
+    {
+        _logger.LogInfo("Show main window requested from System Tray menu");
+        ShowMainWindowRequested?.Invoke(this, EventArgs.Empty);
+    }
+
+    /// <summary>
+    /// Обработчик клика по пункту "Напечатать текст из буфера обмена"
     /// </summary>
     private void OnStartClick(object? sender, EventArgs e)
     {

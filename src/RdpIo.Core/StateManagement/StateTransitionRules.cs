@@ -20,12 +20,14 @@ public static class StateTransitionRules
         [ApplicationState.ValidatingClipboard] = new HashSet<ApplicationState>
         {
             ApplicationState.Countdown,
+            ApplicationState.Cancelled,
             ApplicationState.Idle
         },
 
         [ApplicationState.Countdown] = new HashSet<ApplicationState>
         {
             ApplicationState.Transmitting,
+            ApplicationState.Cancelled,
             ApplicationState.Idle
         },
 

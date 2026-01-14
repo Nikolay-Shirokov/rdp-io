@@ -145,6 +145,17 @@ public class ApplicationOrchestrator : IDisposable
     {
         _logger.LogInfo("Start transmission requested");
 
+        // Проверяем, что приложение в состоянии Idle
+        if (_stateManager.CurrentState != ApplicationState.Idle)
+        {
+            _logger.LogWarning($"Cannot start transmission: application is in state {_stateManager.CurrentState}");
+            _systemTrayManager.ShowNotification(
+                "Приложение занято",
+                "Дождитесь завершения текущей операции",
+                ToolTipIcon.Warning);
+            return;
+        }
+
         try
         {
             // Переход в состояние валидации буфера обмена
@@ -166,6 +177,17 @@ public class ApplicationOrchestrator : IDisposable
     private void OnStartOcrCaptureRequested(object? sender, EventArgs e)
     {
         _logger.LogInfo("Start OCR capture requested");
+
+        // Проверяем, что приложение в состоянии Idle
+        if (_stateManager.CurrentState != ApplicationState.Idle)
+        {
+            _logger.LogWarning($"Cannot start OCR capture: application is in state {_stateManager.CurrentState}");
+            _systemTrayManager.ShowNotification(
+                "Приложение занято",
+                "Дождитесь завершения текущей операции",
+                ToolTipIcon.Warning);
+            return;
+        }
 
         try
         {
