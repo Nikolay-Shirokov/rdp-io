@@ -83,7 +83,7 @@ public class SystemTrayManager : IDisposable
             Font = new Font(_contextMenu.Font, FontStyle.Bold)
         };
 
-        var startItem = new ToolStripMenuItem("📋 Напечатать текст из буфера обмена", null, OnStartClick);
+        var startItem = new ToolStripMenuItem("📋 Напечатать текст", null, OnStartClick);
 
         var ocrCaptureItem = new ToolStripMenuItem("📷 Захват текста (OCR)", null, OnOcrCaptureClick);
 
