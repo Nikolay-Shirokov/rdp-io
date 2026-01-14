@@ -45,7 +45,7 @@ public class AppSettings
     /// <summary>
     /// Minimum log level
     /// </summary>
-    public LogLevel LogLevel { get; set; } = LogLevel.Info;
+    public LogLevel LogLevel { get; set; } = LogLevel.None;
 
     /// <summary>
     /// Maximum log file size in MB
