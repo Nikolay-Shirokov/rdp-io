@@ -1,6 +1,5 @@
 using System.Drawing;
 using System.Drawing.Imaging;
-using System.Runtime.InteropServices;
 using Tesseract;
 
 namespace RdpIo.Infrastructure.OcrManagement;
@@ -8,19 +7,13 @@ namespace RdpIo.Infrastructure.OcrManagement;
 /// <summary>
 /// OCR engine implementation using Tesseract
 /// Provides better accuracy than Windows OCR, especially for colored text and mixed languages
+/// NOTE: Not compatible with single-file deployment - use publish-tesseract for multi-file
 /// </summary>
 public class TesseractOcrEngine : IOcrEngine
 {
     private readonly string _tessDataPath;
     private TesseractEngine? _engine;
     private string? _currentLanguage;
-
-    // P/Invoke для установки пути к DLL (Windows)
-    [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
-    private static extern bool SetDllDirectory(string lpPathName);
-
-    [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
-    private static extern IntPtr AddDllDirectory(string lpPathName);
 
     /// <summary>
     /// Gets the name of the OCR engine
@@ -29,30 +22,18 @@ public class TesseractOcrEngine : IOcrEngine
 
     public TesseractOcrEngine()
     {
-        // Для single-file exe нужно использовать путь к exe, а не BaseDirectory
-        // BaseDirectory указывает на временную папку распаковки
+        // Для multi-file deployment (publish-tesseract) используем путь к exe
+        // Для single-file deployment это не работает из-за InteropDotNet
         string exePath = Environment.ProcessPath ?? AppDomain.CurrentDomain.BaseDirectory;
         string exeDirectory = Path.GetDirectoryName(exePath) ?? AppDomain.CurrentDomain.BaseDirectory;
-
-        // Устанавливаем путь к нативным DLL для Tesseract
-        // Это критически важно для single-file deployment
-        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-        {
-            // Добавляем путь к exe в DLL search path
-            var handle = AddDllDirectory(exeDirectory);
-            if (handle == IntPtr.Zero)
-            {
-                // Fallback на SetDllDirectory если AddDllDirectory не работает
-                SetDllDirectory(exeDirectory);
-            }
-        }
 
         _tessDataPath = Path.Combine(exeDirectory, "tessdata");
 
         if (!Directory.Exists(_tessDataPath))
         {
             throw new OcrException($"Tesseract data directory not found: {_tessDataPath}. " +
-                "Please ensure tessdata folder with language files is present.");
+                "Please ensure tessdata folder with language files is present. " +
+                "Note: Tesseract is not compatible with single-file deployment.");
         }
     }
 
