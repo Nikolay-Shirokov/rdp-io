@@ -2,7 +2,10 @@ using RdpIo.Configuration;
 using RdpIo.Core.ClipboardManagement;
 using RdpIo.Core.KeyboardSimulation;
 using RdpIo.Core.StateManagement;
+using RdpIo.Infrastructure.ImageProcessing;
 using RdpIo.Infrastructure.Logging;
+using RdpIo.Infrastructure.OcrManagement;
+using RdpIo.Infrastructure.ScreenCapture;
 using RdpIo.Infrastructure.Win32;
 using RdpIo.UI.SystemTray;
 
@@ -104,6 +107,27 @@ public static class AppBootstrapper
                 defaultStrategy);
         });
 
+        // ===== OCR: SCREEN CAPTURE =====
+        // Screen Capture Manager - Singleton
+        services.RegisterSingleton<IScreenCaptureManager>(() =>
+        {
+            var win32Api = services.GetRequiredService<IWin32ApiWrapper>();
+            return new ScreenCaptureManager(win32Api);
+        });
+
+        // ===== OCR: IMAGE PROCESSING =====
+        // Image Processor - Singleton
+        services.RegisterSingleton<IImageProcessor>(() => new ImageProcessor());
+
+        // ===== OCR: TEXT RECOGNITION =====
+        // OCR Engine Factory - creates engines dynamically based on current settings
+        services.RegisterSingleton<IOcrEngineFactory>(() =>
+        {
+            var settingsManager = services.GetRequiredService<SettingsManager>();
+            var logger = services.GetRequiredService<ILogger>();
+            return new OcrEngineFactory(settingsManager, logger);
+        });
+
         // ===== UI =====
         // System Tray Manager - Singleton
         services.RegisterSingleton<SystemTrayManager>(() =>
@@ -124,6 +148,9 @@ public static class AppBootstrapper
             var keyboardSimulator = services.GetRequiredService<IKeyboardSimulator>();
             var settingsManager = services.GetRequiredService<SettingsManager>();
             var logger = services.GetRequiredService<ILogger>();
+            var screenCaptureManager = services.GetRequiredService<IScreenCaptureManager>();
+            var imageProcessor = services.GetRequiredService<IImageProcessor>();
+            var ocrEngineFactory = services.GetRequiredService<IOcrEngineFactory>();
 
             return new ApplicationOrchestrator(
                 systemTrayManager,
@@ -131,7 +158,10 @@ public static class AppBootstrapper
                 clipboardManager,
                 keyboardSimulator,
                 settingsManager,
-                logger);
+                logger,
+                screenCaptureManager,
+                imageProcessor,
+                ocrEngineFactory);
         });
 
         // Возвращаем ServiceProvider

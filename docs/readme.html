@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>rdp-io - Руководство пользователя</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        h1 {
+            color: #2c3e50;
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+        h2 {
+            color: #2980b9;
+            margin: 25px 0 15px 0;
+            padding-left: 10px;
+            border-left: 4px solid #3498db;
+        }
+        h3 {
+            color: #34495e;
+            margin: 15px 0 10px 0;
+        }
+        .intro {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 25px;
+        }
+        .intro p { margin: 5px 0; }
+        .section {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .step {
+            display: flex;
+            align-items: flex-start;
+            margin: 10px 0;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 5px;
+        }
+        .step-num {
+            background: #3498db;
+            color: white;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin-right: 12px;
+            flex-shrink: 0;
+        }
+        .step-num.purple { background: #9b59b6; }
+        .step-content { flex: 1; }
+        .hotkey {
+            background: #ecf0f1;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-family: 'Consolas', monospace;
+            border: 1px solid #bdc3c7;
+        }
+        .btn {
+            display: inline-block;
+            padding: 8px 16px;
+            border-radius: 6px;
+            color: white;
+            font-weight: bold;
+            margin: 2px;
+        }
+        .btn-blue { background: #3498db; }
+        .btn-purple { background: #9b59b6; }
+        .btn-gray { background: #95a5a6; }
+        .btn-red { background: #e74c3c; }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+        th, td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background: #3498db;
+            color: white;
+        }
+        tr:hover { background: #f5f5f5; }
+        .tip {
+            background: #e8f6ff;
+            border-left: 4px solid #3498db;
+            padding: 10px 15px;
+            margin: 15px 0;
+            border-radius: 0 5px 5px 0;
+        }
+        .warning {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 10px 15px;
+            margin: 15px 0;
+            border-radius: 0 5px 5px 0;
+        }
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 15px 0;
+        }
+        .feature {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        .feature-icon {
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+        .main-window {
+            background: #2c3e50;
+            border: 3px solid #3498db;
+            border-radius: 10px;
+            padding: 20px;
+            max-width: 350px;
+            margin: 15px auto;
+            text-align: center;
+        }
+        .main-window h4 {
+            color: white;
+            margin-bottom: 5px;
+        }
+        .main-window p {
+            color: #bdc3c7;
+            font-size: 0.9em;
+            margin-bottom: 15px;
+        }
+        .main-window .btn {
+            display: block;
+            margin: 8px 0;
+            padding: 12px;
+        }
+        footer {
+            text-align: center;
+            color: #7f8c8d;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #ddd;
+        }
+    </style>
+</head>
+<body>
+
+<h1>rdp-io</h1>
+
+<div class="intro">
+    <p><strong>Утилита для передачи текста в изолированные RDP-сессии</strong></p>
+    <p>Решает проблему отключенного буфера обмена через эмуляцию клавиатурного ввода и OCR распознавание</p>
+</div>
+
+<div class="section">
+    <h2>Быстрый старт</h2>
+    <p>Запустите <strong>rdp-io.lnk</strong> — откроется главное окно приложения.</p>
+
+    <div class="main-window">
+        <h4>rdp-io</h4>
+        <p>Передача данных в удаленный рабочий стол</p>
+        <span class="btn btn-blue">📋 Напечатать текст из буфера обмена</span>
+        <span class="btn btn-purple">🔍 Захватить текст с экрана (OCR)</span>
+        <span class="btn btn-gray">⚙ Настройки</span>
+        <div style="margin-top: 15px;">
+            <span class="btn btn-gray" style="font-size: 0.85em;">Свернуть в трей</span>
+            <span class="btn btn-red" style="font-size: 0.85em;">Выход</span>
+        </div>
+    </div>
+
+    <div class="tip">
+        <strong>Совет:</strong> Приложение можно свернуть в системный трей. Клик по иконке в трее снова откроет главное окно.
+    </div>
+</div>
+
+<div class="section">
+    <h2>Отправка текста в RDP</h2>
+    <p>Передача текста из буфера обмена через эмуляцию клавиатурного ввода.</p>
+
+    <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-content">Скопируйте текст в буфер обмена (<span class="hotkey">Ctrl+C</span>)</div>
+    </div>
+    <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-content">Нажмите <span class="btn btn-blue" style="padding: 4px 10px; font-size: 0.9em;">📋 Напечатать текст из буфера обмена</span></div>
+    </div>
+    <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-content">Во время обратного отсчета (5 сек) переключитесь в RDP-окно</div>
+    </div>
+    <div class="step">
+        <div class="step-num">4</div>
+        <div class="step-content">Кликните в поле ввода — текст "напечатается" автоматически</div>
+    </div>
+
+    <div class="tip">
+        <strong>Совет:</strong> Поддерживается любой текст включая кириллицу, спецсимволы и переносы строк.
+    </div>
+</div>
+
+<div class="section">
+    <h2>Захват текста с экрана (OCR)</h2>
+    <p>Распознавание текста с экрана RDP через OCR.</p>
+
+    <div class="step">
+        <div class="step-num purple">1</div>
+        <div class="step-content">Нажмите <span class="btn btn-purple" style="padding: 4px 10px; font-size: 0.9em;">🔍 Захватить текст с экрана (OCR)</span></div>
+    </div>
+    <div class="step">
+        <div class="step-num purple">2</div>
+        <div class="step-content">Выделите область с текстом мышью (зажмите ЛКМ и растяните рамку)</div>
+    </div>
+    <div class="step">
+        <div class="step-num purple">3</div>
+        <div class="step-content">Дождитесь распознавания (1-3 секунды)</div>
+    </div>
+    <div class="step">
+        <div class="step-num purple">4</div>
+        <div class="step-content">В окне результата: <strong>Копировать</strong> или <strong>Отправить в RDP</strong></div>
+    </div>
+
+    <div class="tip">
+        <strong>Совет:</strong> Для лучшего распознавания выделяйте область с четким контрастным текстом.
+    </div>
+</div>
+
+<div class="section">
+    <h2>Настройки</h2>
+    <p>Нажмите <span class="btn btn-gray" style="padding: 4px 10px; font-size: 0.9em;">⚙ Настройки</span> в главном окне.</p>
+
+    <h3>Режимы скорости передачи</h3>
+    <table>
+        <tr>
+            <th>Режим</th>
+            <th>Задержка</th>
+            <th>Когда использовать</th>
+        </tr>
+        <tr>
+            <td><strong>Fast</strong></td>
+            <td>20 мс</td>
+            <td>Быстрое локальное соединение</td>
+        </tr>
+        <tr>
+            <td><strong>Reliable</strong></td>
+            <td>50 мс</td>
+            <td>Рекомендуется (по умолчанию)</td>
+        </tr>
+        <tr>
+            <td><strong>Slow</strong></td>
+            <td>100 мс</td>
+            <td>Медленное соединение / VPN</td>
+        </tr>
+    </table>
+
+    <h3>Настройки OCR</h3>
+    <table>
+        <tr>
+            <th>Параметр</th>
+            <th>Описание</th>
+        </tr>
+        <tr>
+            <td><strong>Движок</strong></td>
+            <td>Tesseract (лучшее качество) или Windows OCR</td>
+        </tr>
+        <tr>
+            <td><strong>Язык</strong></td>
+            <td>Русский (ru) по умолчанию, доступны en, de, fr и др.</td>
+        </tr>
+        <tr>
+            <td><strong>Предобработка</strong></td>
+            <td>Улучшение изображения перед распознаванием</td>
+        </tr>
+    </table>
+</div>
+
+<div class="section">
+    <h2>Решение проблем</h2>
+
+    <h3>Пропускаются символы при передаче?</h3>
+    <p>Переключитесь на режим <strong>Slow</strong> в настройках.</p>
+
+    <h3>OCR плохо распознает текст?</h3>
+    <ul>
+        <li>Убедитесь, что текст контрастный и четкий</li>
+        <li>Попробуйте включить предобработку изображения</li>
+        <li>Выделяйте область без лишних элементов интерфейса</li>
+    </ul>
+
+    <h3>Текст вводится не в то окно?</h3>
+    <p>Во время обратного отсчета переключитесь в нужное окно и кликните в поле ввода.</p>
+
+    <div class="warning">
+        <strong>Важно:</strong> Не двигайте мышью и не нажимайте клавиши во время передачи текста.
+    </div>
+</div>
+
+<div class="section">
+    <h2>Структура папки</h2>
+    <table>
+        <tr>
+            <td><strong>rdp-io.lnk</strong></td>
+            <td>Ярлык для запуска приложения</td>
+        </tr>
+        <tr>
+            <td><strong>readme.html</strong></td>
+            <td>Это руководство</td>
+        </tr>
+        <tr>
+            <td><strong>app/</strong></td>
+            <td>Файлы приложения (exe, dll, настройки)</td>
+        </tr>
+    </table>
+    <p>Настройки сохраняются в <code>app/settings.json</code></p>
+</div>
+
+<footer>
+    <p><strong>rdp-io</strong> &copy; 2025-2026</p>
+    <p>Разработано для упрощения работы с изолированными RDP-сессиями</p>
+</footer>
+
+</body>
+</html>

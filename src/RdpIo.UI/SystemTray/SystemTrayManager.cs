@@ -21,9 +21,19 @@ public class SystemTrayManager : IDisposable
     private ContextMenuStrip? _contextMenu;
 
     /// <summary>
+    /// Событие запроса показа главного окна
+    /// </summary>
+    public event EventHandler? ShowMainWindowRequested;
+
+    /// <summary>
     /// Событие запроса запуска передачи
     /// </summary>
     public event EventHandler? StartTransmissionRequested;
+
+    /// <summary>
+    /// Событие запроса запуска OCR захвата
+    /// </summary>
+    public event EventHandler? StartOcrCaptureRequested;
 
     /// <summary>
     /// Событие запроса открытия настроек
@@ -68,10 +78,14 @@ public class SystemTrayManager : IDisposable
         _contextMenu = new ContextMenuStrip();
 
         // Пункты меню
-        var startItem = new ToolStripMenuItem("▶ Запустить передачу", null, OnStartClick)
+        var showWindowItem = new ToolStripMenuItem("🖥 Показать окно", null, OnShowWindowClick)
         {
             Font = new Font(_contextMenu.Font, FontStyle.Bold)
         };
+
+        var startItem = new ToolStripMenuItem("📋 Напечатать текст", null, OnStartClick);
+
+        var ocrCaptureItem = new ToolStripMenuItem("📷 Захват текста (OCR)", null, OnOcrCaptureClick);
 
         var settingsItem = new ToolStripMenuItem("⚙ Настройки", null, OnSettingsClick);
         var aboutItem = new ToolStripMenuItem("ℹ О программе", null, OnAboutClick);
@@ -79,7 +93,10 @@ public class SystemTrayManager : IDisposable
 
         _contextMenu.Items.AddRange(new ToolStripItem[]
         {
+            showWindowItem,
+            new ToolStripSeparator(),
             startItem,
+            ocrCaptureItem,
             new ToolStripSeparator(),
             settingsItem,
             aboutItem,
@@ -102,13 +119,14 @@ public class SystemTrayManager : IDisposable
         };
 
         // Правый клик - показать меню (стандартное поведение через ContextMenuStrip)
-        // Левый клик - можно использовать для мгновенного старта
+        // Левый клик - показать главное окно
         _notifyIcon.Click += (s, e) =>
         {
             if (e is MouseEventArgs me && me.Button == MouseButtons.Left)
             {
-                // Левый клик - мгновенный старт
-                OnStartTransmission();
+                // Левый клик - показать главное окно
+                _logger.LogInfo("Main window requested from System Tray (left click)");
+                ShowMainWindowRequested?.Invoke(this, EventArgs.Empty);
             }
         };
 
@@ -135,6 +153,10 @@ public class SystemTrayManager : IDisposable
             ApplicationState.Countdown => "rdp-io - Обратный отсчет...",
             ApplicationState.Transmitting => "rdp-io - Передача текста...",
             ApplicationState.Paused => "rdp-io - Приостановлено",
+            ApplicationState.SelectingRegion => "rdp-io - Выбор области...",
+            ApplicationState.CapturingScreen => "rdp-io - Захват экрана...",
+            ApplicationState.ProcessingOcr => "rdp-io - Распознавание...",
+            ApplicationState.ShowingOcrResult => "rdp-io - Результат OCR",
             _ => "rdp-io"
         };
 
@@ -173,11 +195,29 @@ public class SystemTrayManager : IDisposable
     }
 
     /// <summary>
-    /// Обработчик клика по пункту "Запустить передачу"
+    /// Обработчик клика по пункту "Показать окно"
+    /// </summary>
+    private void OnShowWindowClick(object? sender, EventArgs e)
+    {
+        _logger.LogInfo("Show main window requested from System Tray menu");
+        ShowMainWindowRequested?.Invoke(this, EventArgs.Empty);
+    }
+
+    /// <summary>
+    /// Обработчик клика по пункту "Напечатать текст из буфера обмена"
     /// </summary>
     private void OnStartClick(object? sender, EventArgs e)
     {
         OnStartTransmission();
+    }
+
+    /// <summary>
+    /// Обработчик клика по пункту "Захват текста (OCR)"
+    /// </summary>
+    private void OnOcrCaptureClick(object? sender, EventArgs e)
+    {
+        _logger.LogInfo("OCR capture requested from System Tray");
+        StartOcrCaptureRequested?.Invoke(this, EventArgs.Empty);
     }
 
     /// <summary>

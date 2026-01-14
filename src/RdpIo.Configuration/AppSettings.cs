@@ -45,11 +45,28 @@ public class AppSettings
     /// <summary>
     /// Minimum log level
     /// </summary>
-    public LogLevel LogLevel { get; set; } = LogLevel.Info;
+    public LogLevel LogLevel { get; set; } = LogLevel.None;
 
     /// <summary>
     /// Maximum log file size in MB
     /// </summary>
     public int MaxLogFileSizeMB { get; set; } = 10;
+
+    // ===== OCR Settings =====
+
+    /// <summary>
+    /// OCR engine to use: "Windows" (built-in) or "Tesseract" (better quality, requires tessdata)
+    /// </summary>
+    public string OcrEngine { get; set; } = "Tesseract";
+
+    /// <summary>
+    /// OCR language code (e.g., "en", "ru", "en-US") or "auto" for automatic detection
+    /// </summary>
+    public string OcrLanguage { get; set; } = "ru";
+
+    /// <summary>
+    /// Enable image preprocessing before OCR
+    /// </summary>
+    public bool OcrEnablePreprocessing { get; set; } = false;
 }
 

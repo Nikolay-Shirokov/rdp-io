@@ -22,6 +22,10 @@ public partial class App : Application
     {
         try
         {
+            // Приложение работает через System Tray без главного окна
+            // Не завершать при закрытии последнего окна
+            ShutdownMode = ShutdownMode.OnExplicitShutdown;
+
             // Конфигурируем Dependency Injection
             _serviceProvider = AppBootstrapper.ConfigureServices();
 
@@ -39,12 +43,15 @@ public partial class App : Application
             _logger.LogInfo("Application Orchestrator initialized");
 
             _logger.LogInfo("=== rdp-io Application Started Successfully ===");
-            _logger.LogInfo("Application is running in System Tray. Right-click the icon to start transmission.");
+
+            // Показываем главное окно при запуске
+            _orchestrator.ShowMainWindow();
+            _logger.LogInfo("Main window displayed on startup");
 
             // Показываем приветственное уведомление
             _systemTrayManager.ShowNotification(
                 "rdp-io запущен",
-                "Приложение готово к работе. Кликните правой кнопкой по иконке для запуска.",
+                "Приложение готово к работе.",
                 System.Windows.Forms.ToolTipIcon.Info);
         }
         catch (Exception ex)

@@ -1,3 +1,4 @@
+using System.Drawing;
 using System.Threading;
 using System.Windows;
 using System.Windows.Forms;
@@ -5,7 +6,10 @@ using RdpIo.Configuration;
 using RdpIo.Core.ClipboardManagement;
 using RdpIo.Core.KeyboardSimulation;
 using RdpIo.Core.StateManagement;
+using RdpIo.Infrastructure.ImageProcessing;
 using RdpIo.Infrastructure.Logging;
+using RdpIo.Infrastructure.OcrManagement;
+using RdpIo.Infrastructure.ScreenCapture;
 using RdpIo.UI.SystemTray;
 using RdpIo.UI.Windows;
 
@@ -23,10 +27,21 @@ public class ApplicationOrchestrator : IDisposable
     private readonly IKeyboardSimulator _keyboardSimulator;
     private readonly SettingsManager _settingsManager;
     private readonly ILogger _logger;
+    private readonly IScreenCaptureManager _screenCaptureManager;
+    private readonly IImageProcessor _imageProcessor;
+    private readonly IOcrEngineFactory _ocrEngineFactory;
 
+    private MainWindow? _mainWindow;
     private CountdownWindow? _countdownWindow;
     private ProgressWindow? _progressWindow;
     private CancellationTokenSource? _transmissionCts;
+
+    // OCR workflow windows
+    private RegionSelectionWindow? _regionSelectionWindow;
+    private OcrProcessingWindow? _ocrProcessingWindow;
+    private OcrResultWindow? _ocrResultWindow;
+    private ScreenCaptureRegion? _selectedRegion;
+    private string? _ocrRecognizedText;
 
     /// <summary>
     /// Создает новый оркестратор приложения
@@ -37,7 +52,10 @@ public class ApplicationOrchestrator : IDisposable
         IClipboardManager clipboardManager,
         IKeyboardSimulator keyboardSimulator,
         SettingsManager settingsManager,
-        ILogger logger)
+        ILogger logger,
+        IScreenCaptureManager screenCaptureManager,
+        IImageProcessor imageProcessor,
+        IOcrEngineFactory ocrEngineFactory)
     {
         _systemTrayManager = systemTrayManager ?? throw new ArgumentNullException(nameof(systemTrayManager));
         _stateManager = stateManager ?? throw new ArgumentNullException(nameof(stateManager));
@@ -45,6 +63,9 @@ public class ApplicationOrchestrator : IDisposable
         _keyboardSimulator = keyboardSimulator ?? throw new ArgumentNullException(nameof(keyboardSimulator));
         _settingsManager = settingsManager ?? throw new ArgumentNullException(nameof(settingsManager));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        _screenCaptureManager = screenCaptureManager ?? throw new ArgumentNullException(nameof(screenCaptureManager));
+        _imageProcessor = imageProcessor ?? throw new ArgumentNullException(nameof(imageProcessor));
+        _ocrEngineFactory = ocrEngineFactory ?? throw new ArgumentNullException(nameof(ocrEngineFactory));
 
         AttachEventHandlers();
 
@@ -57,7 +78,9 @@ public class ApplicationOrchestrator : IDisposable
     private void AttachEventHandlers()
     {
         // События от System Tray
+        _systemTrayManager.ShowMainWindowRequested += OnShowMainWindowRequested;
         _systemTrayManager.StartTransmissionRequested += OnStartTransmissionRequested;
+        _systemTrayManager.StartOcrCaptureRequested += OnStartOcrCaptureRequested;
         _systemTrayManager.SettingsRequested += OnSettingsRequested;
         _systemTrayManager.ExitRequested += OnExitRequested;
 
@@ -66,11 +89,72 @@ public class ApplicationOrchestrator : IDisposable
     }
 
     /// <summary>
+    /// Показывает главное окно приложения при запуске
+    /// </summary>
+    public void ShowMainWindow()
+    {
+        System.Windows.Application.Current.Dispatcher.Invoke(() =>
+        {
+            if (_mainWindow == null || !_mainWindow.IsVisible)
+            {
+                _mainWindow = new MainWindow();
+
+                // Подписываемся на события от главного окна
+                _mainWindow.ClipboardCaptureRequested += (s, e) => OnStartTransmissionRequested(s, e);
+                _mainWindow.OcrCaptureRequested += (s, e) => OnStartOcrCaptureRequested(s, e);
+                _mainWindow.SettingsRequested += (s, e) => OnSettingsRequested(s, e);
+                _mainWindow.MinimizeToTrayRequested += (s, e) => { _mainWindow?.Hide(); };
+                _mainWindow.ExitRequested += (s, e) => OnExitRequested(s, e);
+
+                _mainWindow.Show();
+                _logger.LogInfo("Main window shown");
+            }
+            else
+            {
+                _mainWindow.Activate();
+                _logger.LogInfo("Main window activated");
+            }
+        });
+    }
+
+    /// <summary>
+    /// Обработчик запроса показа главного окна из System Tray
+    /// </summary>
+    private void OnShowMainWindowRequested(object? sender, EventArgs e)
+    {
+        _logger.LogInfo("Show/hide main window requested");
+
+        System.Windows.Application.Current.Dispatcher.Invoke(() =>
+        {
+            if (_mainWindow == null || !_mainWindow.IsVisible)
+            {
+                ShowMainWindow();
+            }
+            else
+            {
+                _mainWindow.Hide();
+                _logger.LogInfo("Main window hidden");
+            }
+        });
+    }
+
+    /// <summary>
     /// Обработчик запроса запуска передачи из System Tray
     /// </summary>
     private void OnStartTransmissionRequested(object? sender, EventArgs e)
     {
         _logger.LogInfo("Start transmission requested");
+
+        // Проверяем, что приложение в состоянии Idle
+        if (_stateManager.CurrentState != ApplicationState.Idle)
+        {
+            _logger.LogWarning($"Cannot start transmission: application is in state {_stateManager.CurrentState}");
+            _systemTrayManager.ShowNotification(
+                "Приложение занято",
+                "Дождитесь завершения текущей операции",
+                ToolTipIcon.Warning);
+            return;
+        }
 
         try
         {
@@ -83,6 +167,39 @@ public class ApplicationOrchestrator : IDisposable
             _systemTrayManager.ShowNotification(
                 "Ошибка",
                 "Не удалось запустить передачу",
+                ToolTipIcon.Error);
+        }
+    }
+
+    /// <summary>
+    /// Обработчик запроса запуска OCR захвата из System Tray
+    /// </summary>
+    private void OnStartOcrCaptureRequested(object? sender, EventArgs e)
+    {
+        _logger.LogInfo("Start OCR capture requested");
+
+        // Проверяем, что приложение в состоянии Idle
+        if (_stateManager.CurrentState != ApplicationState.Idle)
+        {
+            _logger.LogWarning($"Cannot start OCR capture: application is in state {_stateManager.CurrentState}");
+            _systemTrayManager.ShowNotification(
+                "Приложение занято",
+                "Дождитесь завершения текущей операции",
+                ToolTipIcon.Warning);
+            return;
+        }
+
+        try
+        {
+            // Переход в состояние выбора области экрана
+            _stateManager.TransitionTo(ApplicationState.SelectingRegion);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError($"Failed to start OCR capture: {ex.Message}");
+            _systemTrayManager.ShowNotification(
+                "Ошибка",
+                "Не удалось запустить захват OCR",
                 ToolTipIcon.Error);
         }
     }
@@ -174,6 +291,23 @@ public class ApplicationOrchestrator : IDisposable
 
             case ApplicationState.Idle:
                 HandleIdle();
+                break;
+
+            // OCR states
+            case ApplicationState.SelectingRegion:
+                HandleSelectingRegion();
+                break;
+
+            case ApplicationState.CapturingScreen:
+                HandleCapturingScreen();
+                break;
+
+            case ApplicationState.ProcessingOcr:
+                HandleProcessingOcr();
+                break;
+
+            case ApplicationState.ShowingOcrResult:
+                HandleShowingOcrResult();
                 break;
         }
     }
@@ -317,14 +451,30 @@ public class ApplicationOrchestrator : IDisposable
             _progressWindow.CancelRequested += OnTransmissionCancelRequested;
             _progressWindow.Show();
 
-            // Получаем текст из буфера обмена
-            var clipboardContent = await _clipboardManager.GetTextAsync();
+            // Получаем текст: или из OCR результата, или из буфера обмена
+            string textToTransmit;
 
-            if (clipboardContent == null || string.IsNullOrWhiteSpace(clipboardContent.Text))
+            if (!string.IsNullOrWhiteSpace(_ocrRecognizedText))
             {
-                _logger.LogError("Clipboard is empty during transmission");
-                _stateManager.TransitionTo(ApplicationState.Failed);
-                return;
+                // Используем OCR текст
+                textToTransmit = _ocrRecognizedText;
+                _logger.LogInfo($"Transmitting OCR text: {textToTransmit.Length} characters");
+                _ocrRecognizedText = null; // Очищаем после использования
+            }
+            else
+            {
+                // Получаем текст из буфера обмена
+                var clipboardContent = await _clipboardManager.GetTextAsync();
+
+                if (clipboardContent == null || string.IsNullOrWhiteSpace(clipboardContent.Text))
+                {
+                    _logger.LogError("No text available for transmission");
+                    _stateManager.TransitionTo(ApplicationState.Failed);
+                    return;
+                }
+
+                textToTransmit = clipboardContent.Text;
+                _logger.LogInfo($"Transmitting clipboard text: {textToTransmit.Length} characters");
             }
 
             // Устанавливаем стратегию передачи из настроек
@@ -342,7 +492,7 @@ public class ApplicationOrchestrator : IDisposable
 
             // Запускаем передачу
             var result = await _keyboardSimulator.TransmitTextAsync(
-                clipboardContent.Text,
+                textToTransmit,
                 progress,
                 _transmissionCts.Token);
 
@@ -457,6 +607,416 @@ public class ApplicationOrchestrator : IDisposable
         _logger.LogInfo("Application is idle and ready");
         // Ничего особенного не делаем, просто готовы к новой передаче
     }
+
+    #region OCR Workflow Handlers
+
+    /// <summary>
+    /// Обработчик состояния: Выбор области экрана для OCR
+    /// </summary>
+    private void HandleSelectingRegion()
+    {
+        _logger.LogInfo("Starting region selection...");
+
+        try
+        {
+            // Создаем окно выбора области
+            _regionSelectionWindow = new RegionSelectionWindow();
+
+            // Подписываемся на события
+            _regionSelectionWindow.RegionSelected += OnRegionSelected;
+            _regionSelectionWindow.SelectionCancelled += OnRegionSelectionCancelled;
+
+            // Показываем окно
+            _regionSelectionWindow.Show();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError($"Failed to show region selection window: {ex.Message}");
+            _systemTrayManager.ShowNotification(
+                "Ошибка",
+                "Не удалось открыть окно выбора области",
+                ToolTipIcon.Error);
+            _stateManager.TransitionTo(ApplicationState.Idle);
+        }
+    }
+
+    /// <summary>
+    /// Обработчик выбора области экрана
+    /// </summary>
+    private void OnRegionSelected(object? sender, ScreenCaptureRegion region)
+    {
+        _logger.LogInfo($"Region selected: {region}");
+
+        // Дополнительная диагностика для проверки координат
+        var primaryScreen = System.Windows.Forms.Screen.PrimaryScreen;
+        var allScreens = System.Windows.Forms.Screen.AllScreens;
+        _logger.LogInfo($"Primary screen bounds: {primaryScreen?.Bounds}");
+        _logger.LogInfo($"Total screens: {allScreens.Length}");
+        for (int i = 0; i < allScreens.Length; i++)
+        {
+            _logger.LogInfo($"Screen {i}: Bounds={allScreens[i].Bounds}, Primary={allScreens[i].Primary}");
+        }
+        _logger.LogInfo($"VirtualScreen: ({System.Windows.Forms.SystemInformation.VirtualScreen.X}, {System.Windows.Forms.SystemInformation.VirtualScreen.Y}) {System.Windows.Forms.SystemInformation.VirtualScreen.Width}×{System.Windows.Forms.SystemInformation.VirtualScreen.Height}");
+
+        // Сохраняем выбранную область
+        _selectedRegion = region;
+
+        // Отписываемся от событий
+        if (_regionSelectionWindow != null)
+        {
+            _regionSelectionWindow.RegionSelected -= OnRegionSelected;
+            _regionSelectionWindow.SelectionCancelled -= OnRegionSelectionCancelled;
+            _regionSelectionWindow = null;
+        }
+
+        // Переход к захвату экрана
+        _stateManager.TransitionTo(ApplicationState.CapturingScreen);
+    }
+
+    /// <summary>
+    /// Обработчик отмены выбора области
+    /// </summary>
+    private void OnRegionSelectionCancelled(object? sender, EventArgs e)
+    {
+        _logger.LogInfo("Region selection cancelled");
+
+        // Отписываемся от событий
+        if (_regionSelectionWindow != null)
+        {
+            _regionSelectionWindow.RegionSelected -= OnRegionSelected;
+            _regionSelectionWindow.SelectionCancelled -= OnRegionSelectionCancelled;
+            _regionSelectionWindow = null;
+        }
+
+        // Переход в Idle
+        _stateManager.TransitionTo(ApplicationState.Idle);
+    }
+
+    /// <summary>
+    /// Обработчик состояния: Захват области экрана
+    /// </summary>
+    private async void HandleCapturingScreen()
+    {
+        _logger.LogInfo("Starting screen capture...");
+
+        try
+        {
+            if (_selectedRegion == null)
+                throw new InvalidOperationException("No region selected");
+
+            // Задержка перед захватом, чтобы все окна (в т.ч. RegionSelectionWindow) полностью исчезли
+            await Task.Delay(300);
+
+            // Захватываем выбранную область экрана
+            using var capturedImage = await _screenCaptureManager.CaptureRegionAsync(_selectedRegion);
+
+            _logger.LogInfo($"Screen captured: {capturedImage.Width}x{capturedImage.Height}");
+
+            // Теперь показываем окно обработки (после захвата!)
+            _ocrProcessingWindow = new OcrProcessingWindow();
+            _ocrProcessingWindow.SetStageCapturing();
+            _ocrProcessingWindow.Show();
+
+            // Сохраняем изображение временно для обработки
+            var imageCopy = new Bitmap(capturedImage);
+
+            // Переход к обработке OCR
+            _stateManager.TransitionTo(ApplicationState.ProcessingOcr);
+
+            // Запускаем OCR в фоне
+            await ProcessOcrAsync(imageCopy);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError($"Screen capture failed: {ex.Message}");
+            CloseOcrProcessingWindow();
+            _systemTrayManager.ShowNotification(
+                "Ошибка захвата",
+                "Не удалось захватить область экрана",
+                ToolTipIcon.Error);
+            _stateManager.TransitionTo(ApplicationState.Idle);
+        }
+    }
+
+    /// <summary>
+    /// Обработчик состояния: Обработка OCR
+    /// </summary>
+    private void HandleProcessingOcr()
+    {
+        _logger.LogInfo("Processing OCR...");
+        // OCR обработка запускается в HandleCapturingScreen через ProcessOcrAsync
+    }
+
+    /// <summary>
+    /// Выполняет OCR обработку изображения
+    /// </summary>
+    private async Task ProcessOcrAsync(Bitmap image)
+    {
+        try
+        {
+            var settings = _settingsManager.CurrentSettings;
+
+            // Создаём OCR движок на основе текущих настроек
+            var ocrEngine = _ocrEngineFactory.CreateEngine();
+            _logger.LogInfo($"Using OCR engine: {settings.OcrEngine}");
+
+            // Проверяем доступность языков
+            var availableLanguages = await ocrEngine.GetAvailableLanguagesAsync();
+            _logger.LogInfo($"Available OCR languages: {string.Join(", ", availableLanguages)}");
+
+            // Stage 2: Обработка изображения
+            _ocrProcessingWindow?.SetStageProcessing();
+
+            Bitmap processedImage = image;
+
+            // Upscale для улучшения распознавания мелкого текста (всегда применяется)
+            _logger.LogInfo($"Upscaling image 2x for better OCR accuracy ({image.Width}×{image.Height} → {image.Width * 2}×{image.Height * 2})");
+            var upscaled = _imageProcessor.Upscale(image, scaleFactor: 2.0);
+            image.Dispose();
+
+            // Лёгкая предобработка: grayscale для лучшего распознавания цветного текста (всегда включена)
+            _logger.LogInfo("Applying light preprocessing (grayscale) for better colored text recognition");
+            var grayscaled = _imageProcessor.LightPreprocessForOcr(upscaled);
+            upscaled.Dispose();
+            processedImage = grayscaled;
+
+            // Дополнительная агрессивная предобработка (опционально, обычно не нужна)
+            if (settings.OcrEnablePreprocessing)
+            {
+                _logger.LogInfo("Applying additional aggressive preprocessing (contrast+noise reduction)");
+                var fullyProcessed = _imageProcessor.PreprocessForOcr(processedImage, enableNoiseReduction: true);
+                processedImage.Dispose();
+                processedImage = fullyProcessed;
+            }
+
+            // Stage 3: Распознавание текста
+            _ocrProcessingWindow?.SetStageRecognizing();
+
+            OcrResult result;
+
+            // Автоопределение языка или конкретный язык
+            if (settings.OcrLanguage.Equals("auto", StringComparison.OrdinalIgnoreCase))
+            {
+                _logger.LogInfo("Auto-detecting OCR language...");
+                result = await RecognizeWithAutoLanguageAsync(processedImage, availableLanguages, ocrEngine);
+            }
+            else
+            {
+                // Проверяем доступность указанного языка
+                var isLanguageAvailable = await ocrEngine.IsLanguageAvailableAsync(settings.OcrLanguage);
+                if (!isLanguageAvailable)
+                {
+                    _logger.LogWarning($"Requested OCR language '{settings.OcrLanguage}' is not available. Falling back to auto-detection.");
+                    result = await RecognizeWithAutoLanguageAsync(processedImage, availableLanguages, ocrEngine);
+                }
+                else
+                {
+                    _logger.LogInfo($"Using OCR language: {settings.OcrLanguage}");
+                    var ocrSettings = new OcrSettings
+                    {
+                        Language = settings.OcrLanguage,
+                        EnablePreprocessing = false,
+                        EngineType = OcrEngineType.Windows,
+                        TimeoutSeconds = 30
+                    };
+                    result = await ocrEngine.RecognizeTextAsync(processedImage, ocrSettings);
+                }
+            }
+
+            processedImage.Dispose();
+
+            _logger.LogInfo($"OCR completed: {result.CharacterCount} characters, {result.LineCount} lines, Confidence: {result.Confidence:P0}");
+            _logger.LogInfo($"Recognized text preview: {(result.Text.Length > 100 ? result.Text.Substring(0, 100) + "..." : result.Text)}");
+
+            // Сохраняем результат
+            _ocrRecognizedText = result.Text;
+
+            // Закрываем окно обработки
+            CloseOcrProcessingWindow();
+
+            // Показываем результат в UI потоке
+            System.Windows.Application.Current.Dispatcher.Invoke(() =>
+            {
+                ShowOcrResult(result);
+                _stateManager.TransitionTo(ApplicationState.ShowingOcrResult);
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError($"OCR processing failed: {ex.Message}");
+            CloseOcrProcessingWindow();
+            _systemTrayManager.ShowNotification(
+                "Ошибка OCR",
+                $"Не удалось распознать текст: {ex.Message}",
+                ToolTipIcon.Error);
+            _stateManager.TransitionTo(ApplicationState.Idle);
+        }
+    }
+
+    /// <summary>
+    /// Пробует распознавание с несколькими языками и выбирает лучший результат
+    /// </summary>
+    private async Task<OcrResult> RecognizeWithAutoLanguageAsync(Bitmap image, IReadOnlyList<string> availableLanguages, IOcrEngine ocrEngine)
+    {
+        // Приоритетные языки для проверки (в порядке приоритета)
+        var languagesToTry = new[] { "ru", "en", "ru-RU", "en-US", "en-GB" };
+
+        // Фильтруем только те, что доступны в системе
+        var testLanguages = languagesToTry
+            .Where(lang => availableLanguages.Contains(lang, StringComparer.OrdinalIgnoreCase))
+            .ToList();
+
+        // Если нет приоритетных языков, берем первые доступные
+        if (!testLanguages.Any())
+        {
+            testLanguages = availableLanguages.Take(3).ToList();
+        }
+
+        _logger.LogInfo($"Auto-detection: trying languages: {string.Join(", ", testLanguages)}");
+
+        OcrResult? bestResult = null;
+        double bestScore = 0;
+        string? bestLanguage = null;
+
+        foreach (var language in testLanguages)
+        {
+            try
+            {
+                var ocrSettings = new OcrSettings
+                {
+                    Language = language,
+                    EnablePreprocessing = false,
+                    EngineType = OcrEngineType.Windows,
+                    TimeoutSeconds = 10
+                };
+
+                var result = await ocrEngine.RecognizeTextAsync(image, ocrSettings);
+
+                // Оценка: уверенность * количество символов (чем больше, тем лучше)
+                double score = result.Confidence * result.CharacterCount;
+
+                _logger.LogInfo($"Language '{language}': {result.CharacterCount} chars, confidence {result.Confidence:P0}, score {score:F0}");
+
+                if (score > bestScore)
+                {
+                    bestScore = score;
+                    bestResult = result;
+                    bestLanguage = language;
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning($"Failed to recognize with language '{language}': {ex.Message}");
+            }
+        }
+
+        if (bestResult == null)
+        {
+            throw new OcrException("Failed to recognize text with any available language");
+        }
+
+        _logger.LogInfo($"Best result: language '{bestLanguage}' with score {bestScore:F0}");
+        return bestResult;
+    }
+
+    /// <summary>
+    /// Показывает окно с результатами OCR
+    /// </summary>
+    private void ShowOcrResult(OcrResult result)
+    {
+        _ocrResultWindow = new OcrResultWindow();
+        _ocrResultWindow.SetResult(result);
+
+        // Подписываемся на события
+        _ocrResultWindow.SendToRdpRequested += OnOcrSendToRdpRequested;
+        _ocrResultWindow.Closed += OnOcrResultWindowClosed;
+
+        _ocrResultWindow.Show();
+    }
+
+    /// <summary>
+    /// Обработчик состояния: Показ результатов OCR
+    /// </summary>
+    private void HandleShowingOcrResult()
+    {
+        _logger.LogInfo("Showing OCR result");
+        // Окно уже показано в ShowOcrResult
+    }
+
+    /// <summary>
+    /// Обработчик запроса отправки OCR текста в RDP
+    /// </summary>
+    private void OnOcrSendToRdpRequested(object? sender, EventArgs e)
+    {
+        _logger.LogInfo("OCR text send to RDP requested");
+
+        try
+        {
+            // Получаем текст из окна (может быть отредактирован)
+            var text = _ocrResultWindow?.GetText();
+
+            if (string.IsNullOrWhiteSpace(text))
+            {
+                _logger.LogWarning("No text to send");
+                return;
+            }
+
+            // Закрываем окно результатов
+            CloseOcrResultWindow();
+
+            // Копируем текст в "виртуальный буфер" для передачи
+            _ocrRecognizedText = text;
+
+            // Переходим в обратный отсчет перед передачей
+            _stateManager.TransitionTo(ApplicationState.Countdown);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError($"Failed to start OCR text transmission: {ex.Message}");
+            _systemTrayManager.ShowNotification(
+                "Ошибка",
+                "Не удалось начать передачу текста",
+                ToolTipIcon.Error);
+        }
+    }
+
+    /// <summary>
+    /// Обработчик закрытия окна результатов OCR
+    /// </summary>
+    private void OnOcrResultWindowClosed(object? sender, EventArgs e)
+    {
+        _logger.LogInfo("OCR result window closed");
+        CloseOcrResultWindow();
+        _stateManager.TransitionTo(ApplicationState.Idle);
+    }
+
+    /// <summary>
+    /// Закрывает окно обработки OCR
+    /// </summary>
+    private void CloseOcrProcessingWindow()
+    {
+        if (_ocrProcessingWindow != null)
+        {
+            _ocrProcessingWindow.Close();
+            _ocrProcessingWindow = null;
+        }
+    }
+
+    /// <summary>
+    /// Закрывает окно результатов OCR
+    /// </summary>
+    private void CloseOcrResultWindow()
+    {
+        if (_ocrResultWindow != null)
+        {
+            _ocrResultWindow.SendToRdpRequested -= OnOcrSendToRdpRequested;
+            _ocrResultWindow.Closed -= OnOcrResultWindowClosed;
+            _ocrResultWindow.Close();
+            _ocrResultWindow = null;
+        }
+    }
+
+    #endregion
 
     /// <summary>
     /// Закрывает окно прогресса и отписывается от событий

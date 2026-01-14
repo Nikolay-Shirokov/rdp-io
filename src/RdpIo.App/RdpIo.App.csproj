@@ -9,7 +9,7 @@
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>net10.0-windows</TargetFramework>
+    <TargetFramework>net10.0-windows10.0.22621.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
@@ -18,6 +18,23 @@
 
   <ItemGroup>
     <None Include="Resources\app_icon.ico" />
+  </ItemGroup>
+
+  <!-- Tesseract OCR Language Files -->
+  <ItemGroup>
+    <None Include="tessdata\**\*.traineddata">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </None>
+  </ItemGroup>
+
+  <!-- Tesseract Native Libraries (x64) -->
+  <ItemGroup>
+    <None Include="$(NuGetPackageRoot)tesseract\5.2.0\x64\*.dll">
+      <Link>%(Filename)%(Extension)</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </None>
   </ItemGroup>
 
   <!-- Publish Configuration -->
