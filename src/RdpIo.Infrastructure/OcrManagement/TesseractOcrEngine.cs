@@ -21,8 +21,12 @@ public class TesseractOcrEngine : IOcrEngine
 
     public TesseractOcrEngine()
     {
-        // tessdata должна быть в папке рядом с исполняемым файлом
-        _tessDataPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "tessdata");
+        // Для single-file exe нужно использовать путь к exe, а не BaseDirectory
+        // BaseDirectory указывает на временную папку распаковки
+        string exePath = Environment.ProcessPath ?? AppDomain.CurrentDomain.BaseDirectory;
+        string exeDirectory = Path.GetDirectoryName(exePath) ?? AppDomain.CurrentDomain.BaseDirectory;
+
+        _tessDataPath = Path.Combine(exeDirectory, "tessdata");
 
         if (!Directory.Exists(_tessDataPath))
         {
