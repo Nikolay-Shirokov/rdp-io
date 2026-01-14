@@ -67,6 +67,7 @@
             margin-right: 12px;
             flex-shrink: 0;
         }
+        .step-num.purple { background: #9b59b6; }
         .step-content { flex: 1; }
         .hotkey {
             background: #ecf0f1;
@@ -75,6 +76,18 @@
             font-family: 'Consolas', monospace;
             border: 1px solid #bdc3c7;
         }
+        .btn {
+            display: inline-block;
+            padding: 8px 16px;
+            border-radius: 6px;
+            color: white;
+            font-weight: bold;
+            margin: 2px;
+        }
+        .btn-blue { background: #3498db; }
+        .btn-purple { background: #9b59b6; }
+        .btn-gray { background: #95a5a6; }
+        .btn-red { background: #e74c3c; }
         table {
             width: 100%;
             border-collapse: collapse;
@@ -120,19 +133,29 @@
             font-size: 2em;
             margin-bottom: 10px;
         }
-        .tray-menu {
+        .main-window {
             background: #2c3e50;
+            border: 3px solid #3498db;
+            border-radius: 10px;
+            padding: 20px;
+            max-width: 350px;
+            margin: 15px auto;
+            text-align: center;
+        }
+        .main-window h4 {
             color: white;
-            padding: 10px;
-            border-radius: 5px;
-            font-family: 'Segoe UI', sans-serif;
-            display: inline-block;
+            margin-bottom: 5px;
         }
-        .tray-item {
-            padding: 5px 15px;
-            cursor: pointer;
+        .main-window p {
+            color: #bdc3c7;
+            font-size: 0.9em;
+            margin-bottom: 15px;
         }
-        .tray-item:hover { background: #34495e; }
+        .main-window .btn {
+            display: block;
+            margin: 8px 0;
+            padding: 12px;
+        }
         footer {
             text-align: center;
             color: #7f8c8d;
@@ -153,19 +176,22 @@
 
 <div class="section">
     <h2>Быстрый старт</h2>
-    <p>Запустите <strong>rdp-io.lnk</strong> - в системном трее появится иконка приложения.</p>
+    <p>Запустите <strong>rdp-io.lnk</strong> — откроется главное окно приложения.</p>
 
-    <div class="feature-grid">
-        <div class="feature">
-            <div class="feature-icon">📤</div>
-            <strong>Отправка текста</strong>
-            <p>Локальная машина → RDP</p>
+    <div class="main-window">
+        <h4>rdp-io</h4>
+        <p>Передача данных в удаленный рабочий стол</p>
+        <span class="btn btn-blue">📋 Напечатать текст из буфера обмена</span>
+        <span class="btn btn-purple">🔍 Захватить текст с экрана (OCR)</span>
+        <span class="btn btn-gray">⚙ Настройки</span>
+        <div style="margin-top: 15px;">
+            <span class="btn btn-gray" style="font-size: 0.85em;">Свернуть в трей</span>
+            <span class="btn btn-red" style="font-size: 0.85em;">Выход</span>
         </div>
-        <div class="feature">
-            <div class="feature-icon">📥</div>
-            <strong>Захват текста (OCR)</strong>
-            <p>RDP → Локальная машина</p>
-        </div>
+    </div>
+
+    <div class="tip">
+        <strong>Совет:</strong> Приложение можно свернуть в системный трей. Клик по иконке в трее снова откроет главное окно.
     </div>
 </div>
 
@@ -179,7 +205,7 @@
     </div>
     <div class="step">
         <div class="step-num">2</div>
-        <div class="step-content">Правый клик по иконке в трее → <strong>"Запустить передачу"</strong></div>
+        <div class="step-content">Нажмите <span class="btn btn-blue" style="padding: 4px 10px; font-size: 0.9em;">📋 Напечатать текст из буфера обмена</span></div>
     </div>
     <div class="step">
         <div class="step-num">3</div>
@@ -200,19 +226,19 @@
     <p>Распознавание текста с экрана RDP через OCR.</p>
 
     <div class="step">
-        <div class="step-num">1</div>
-        <div class="step-content">Правый клик по иконке в трее → <strong>"Захват текста (OCR)"</strong></div>
+        <div class="step-num purple">1</div>
+        <div class="step-content">Нажмите <span class="btn btn-purple" style="padding: 4px 10px; font-size: 0.9em;">🔍 Захватить текст с экрана (OCR)</span></div>
     </div>
     <div class="step">
-        <div class="step-num">2</div>
+        <div class="step-num purple">2</div>
         <div class="step-content">Выделите область с текстом мышью (зажмите ЛКМ и растяните рамку)</div>
     </div>
     <div class="step">
-        <div class="step-num">3</div>
+        <div class="step-num purple">3</div>
         <div class="step-content">Дождитесь распознавания (1-3 секунды)</div>
     </div>
     <div class="step">
-        <div class="step-num">4</div>
+        <div class="step-num purple">4</div>
         <div class="step-content">В окне результата: <strong>Копировать</strong> или <strong>Отправить в RDP</strong></div>
     </div>
 
@@ -223,7 +249,7 @@
 
 <div class="section">
     <h2>Настройки</h2>
-    <p>Правый клик по иконке → <strong>"Настройки"</strong></p>
+    <p>Нажмите <span class="btn btn-gray" style="padding: 4px 10px; font-size: 0.9em;">⚙ Настройки</span> в главном окне.</p>
 
     <h3>Режимы скорости передачи</h3>
     <table>
