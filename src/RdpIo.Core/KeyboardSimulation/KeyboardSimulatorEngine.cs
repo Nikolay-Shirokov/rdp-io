@@ -263,45 +263,60 @@ public class KeyboardSimulatorEngine : IKeyboardSimulator
 
     /// <summary>
     /// Отправляет нажатие клавиши через Win32 SendInput API
+    /// Для заглавных букв использует CapsLock вместо Shift (стабильнее в RDP/Citrix)
     /// </summary>
     private async Task<bool> SendKeyAsync(KeyMapping mapping, CancellationToken cancellationToken)
     {
         try
         {
-            // 1. Нажатие модификаторов
+            bool useCapsLock = mapping.RequiresShift && IsLetterKey(mapping.VirtualKeyCode);
+            bool useShift = mapping.RequiresShift && !useCapsLock;
+
+            // 1. Для заглавных букв используем CapsLock (более стабильно в RDP/Citrix)
+            if (useCapsLock)
+            {
+                await ToggleCapsLockAsync(true, cancellationToken);
+            }
+
+            // 2. Нажатие других модификаторов (Ctrl, Alt, или Shift для не-букв)
             var modifiersDown = new List<INPUT>();
-            if (mapping.RequiresShift) modifiersDown.Add(CreateKeyInput(VirtualKeyCode.LSHIFT, isKeyUp: false));
+            if (useShift) modifiersDown.Add(CreateKeyInput(VirtualKeyCode.LSHIFT, isKeyUp: false));
             if (mapping.RequiresCtrl) modifiersDown.Add(CreateKeyInput(VirtualKeyCode.LCONTROL, isKeyUp: false));
             if (mapping.RequiresAlt) modifiersDown.Add(CreateKeyInput(VirtualKeyCode.LMENU, isKeyUp: false));
 
             if (modifiersDown.Count > 0)
             {
                 uint result = _win32Api.SendInput((uint)modifiersDown.Count, modifiersDown.ToArray());
-                // Небольшая задержка для обработки состояния модификаторов в RDP
-                await Task.Delay(20, cancellationToken);
+                await Task.Delay(40, cancellationToken);
             }
 
-            // 2. Нажатие и отпускание основной клавиши
+            // 3. Нажатие и отпускание основной клавиши
             var keyInputs = new List<INPUT>
             {
                 CreateKeyInput(mapping.VirtualKeyCode, isKeyUp: false),
                 CreateKeyInput(mapping.VirtualKeyCode, isKeyUp: true)
             };
-            
+
             uint keyResult = _win32Api.SendInput((uint)keyInputs.Count, keyInputs.ToArray());
             bool success = keyResult == keyInputs.Count;
 
-            // 3. Отпускание модификаторов (в обратном порядке)
+            // 4. Отпускание модификаторов (в обратном порядке)
             var modifiersUp = new List<INPUT>();
             if (mapping.RequiresAlt) modifiersUp.Add(CreateKeyInput(VirtualKeyCode.LMENU, isKeyUp: true));
             if (mapping.RequiresCtrl) modifiersUp.Add(CreateKeyInput(VirtualKeyCode.LCONTROL, isKeyUp: true));
-            if (mapping.RequiresShift) modifiersUp.Add(CreateKeyInput(VirtualKeyCode.LSHIFT, isKeyUp: true));
+            if (useShift) modifiersUp.Add(CreateKeyInput(VirtualKeyCode.LSHIFT, isKeyUp: true));
 
             if (modifiersUp.Count > 0)
             {
-                // Задержка перед отпусканием
-                await Task.Delay(20, cancellationToken);
+                await Task.Delay(30, cancellationToken);
                 _win32Api.SendInput((uint)modifiersUp.Count, modifiersUp.ToArray());
+                await Task.Delay(20, cancellationToken);
+            }
+
+            // 5. Выключаем CapsLock
+            if (useCapsLock)
+            {
+                await ToggleCapsLockAsync(false, cancellationToken);
             }
 
             if (!success)
@@ -316,6 +331,49 @@ public class KeyboardSimulatorEngine : IKeyboardSimulator
             _logger.LogError($"Исключение в SendKeyAsync: {ex.Message}");
             return false;
         }
+    }
+
+    /// <summary>
+    /// Включает или выключает CapsLock
+    /// </summary>
+    private async Task ToggleCapsLockAsync(bool enable, CancellationToken cancellationToken)
+    {
+        // Проверяем текущее состояние CapsLock
+        bool isCapsLockOn = (_win32Api.GetKeyState((int)VirtualKeyCode.CAPITAL) & 0x0001) != 0;
+
+        if (enable && !isCapsLockOn)
+        {
+            // Включаем CapsLock
+            await SendCapsLockPressAsync(cancellationToken);
+        }
+        else if (!enable && isCapsLockOn)
+        {
+            // Выключаем CapsLock
+            await SendCapsLockPressAsync(cancellationToken);
+        }
+    }
+
+    /// <summary>
+    /// Отправляет нажатие CapsLock
+    /// </summary>
+    private async Task SendCapsLockPressAsync(CancellationToken cancellationToken)
+    {
+        var capsInputs = new INPUT[]
+        {
+            CreateKeyInput(VirtualKeyCode.CAPITAL, isKeyUp: false),
+            CreateKeyInput(VirtualKeyCode.CAPITAL, isKeyUp: true)
+        };
+
+        _win32Api.SendInput((uint)capsInputs.Length, capsInputs);
+        await Task.Delay(50, cancellationToken);
+    }
+
+    /// <summary>
+    /// Проверяет, является ли клавиша буквенной (A-Z)
+    /// </summary>
+    private static bool IsLetterKey(VirtualKeyCode keyCode)
+    {
+        return keyCode >= VirtualKeyCode.VK_A && keyCode <= VirtualKeyCode.VK_Z;
     }
 
     /// <summary>

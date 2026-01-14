@@ -32,6 +32,17 @@ public class Win32ApiWrapper : IWin32ApiWrapper
         return NativeMapVirtualKey(uCode, uMapType);
     }
 
+    [DllImport("user32.dll", EntryPoint = "GetKeyState", SetLastError = true)]
+    private static extern short NativeGetKeyState(int nVirtKey);
+
+    /// <summary>
+    /// Retrieves the status of the specified virtual key
+    /// </summary>
+    public short GetKeyState(int nVirtKey)
+    {
+        return NativeGetKeyState(nVirtKey);
+    }
+
     // ===== Clipboard P/Invoke =====
 
     [DllImport("user32.dll", EntryPoint = "OpenClipboard", SetLastError = true)]

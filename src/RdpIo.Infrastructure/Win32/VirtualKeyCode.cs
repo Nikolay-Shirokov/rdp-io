@@ -49,6 +49,7 @@ public enum VirtualKeyCode : ushort
     SHIFT = 0x10,
     CONTROL = 0x11,
     MENU = 0x12,  // Alt key
+    CAPITAL = 0x14,  // CapsLock
 
     // Специальные клавиши
     SPACE = 0x20,
