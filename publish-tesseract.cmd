@@ -140,12 +140,22 @@ echo }
 ) > "%OUTPUT_DIR%\app\settings.json"
 
 echo.
+echo Копирование документации...
+copy "docs\readme.html" "%OUTPUT_DIR%\readme.html" >nul
+if exist "%OUTPUT_DIR%\readme.html" (
+    echo readme.html скопирован
+) else (
+    echo [ПРЕДУПРЕЖДЕНИЕ] Не удалось скопировать readme.html
+)
+
+echo.
 echo ========================================
 echo Публикация завершена.
 echo Выходная папка: %OUTPUT_DIR%\
 echo.
 echo Структура:
 echo   rdp-io.lnk       - ярлык (запускайте этот файл)
+echo   readme.html      - руководство пользователя
 echo   app\             - все файлы приложения
 echo.
 echo Запуск: %OUTPUT_DIR%\rdp-io.lnk
