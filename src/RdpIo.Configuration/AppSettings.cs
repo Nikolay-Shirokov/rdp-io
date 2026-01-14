@@ -1,3 +1,4 @@
+using RdpIo.Core.KeyboardSimulation;
 using RdpIo.Infrastructure.Logging;
 
 namespace RdpIo.Configuration;
@@ -46,6 +47,13 @@ public class AppSettings
     /// Minimum log level
     /// </summary>
     public LogLevel LogLevel { get; set; } = LogLevel.None;
+
+    // ===== Input Method Settings =====
+
+    /// <summary>
+    /// Input method for text transmission
+    /// </summary>
+    public TextInputMethod TextInputMethod { get; set; } = TextInputMethod.Unicode;
 
     /// <summary>
     /// Maximum log file size in MB

@@ -14,6 +14,7 @@ public class KeyboardSimulatorEngine : IKeyboardSimulator
     private readonly IWin32ApiWrapper _win32Api;
     private readonly ILogger _logger;
     private TransmissionStrategy _strategy;
+    private TextInputMethod _inputMethod = TextInputMethod.Unicode;
 
     /// <summary>
     /// Создает новый экземпляр движка симуляции
@@ -90,8 +91,19 @@ public class KeyboardSimulatorEngine : IKeyboardSimulator
                 }
                 else
                 {
-                    // Для обычных символов используем Unicode-ввод, чтобы не зависеть от раскладки
-                    success = await SendUnicodeAsync(currentChar, cancellationToken);
+                    // Выбор метода ввода в зависимости от настройки
+                    if (_inputMethod == TextInputMethod.Hybrid && IsCyrillic(currentChar))
+                    {
+                        // Гибридный режим: кириллица через клавиатурную симуляцию
+                        // Предполагается что пользователь включил русскую раскладку
+                        KeyMapping mapping = _characterMapper.GetKeyMapping(currentChar, KeyboardLayout.Russian);
+                        success = await SendKeyAsync(mapping, cancellationToken);
+                    }
+                    else
+                    {
+                        // Unicode-ввод для остальных символов
+                        success = await SendUnicodeAsync(currentChar, cancellationToken);
+                    }
                 }
 
                 if (success)
@@ -149,6 +161,15 @@ public class KeyboardSimulatorEngine : IKeyboardSimulator
     {
         _strategy = strategy ?? throw new ArgumentNullException(nameof(strategy));
         _logger.LogInfo($"Стратегия передачи изменена на: {strategy.Name} ({strategy.DelayBetweenCharacters} мс)");
+    }
+
+    /// <summary>
+    /// Устанавливает метод ввода символов
+    /// </summary>
+    public void SetTextInputMethod(TextInputMethod method)
+    {
+        _inputMethod = method;
+        _logger.LogInfo($"Метод ввода изменен на: {method}");
     }
 
     /// <summary>
@@ -396,6 +417,18 @@ public class KeyboardSimulatorEngine : IKeyboardSimulator
         // Управляющие символы: перевод строки и табуляция
         // Примечание: \r удаляется на этапе нормализации (строка 50)
         return character == '\n' || character == '\t';
+    }
+
+    /// <summary>
+    /// Проверяет, является ли символ кириллическим (русские буквы)
+    /// </summary>
+    private static bool IsCyrillic(char character)
+    {
+        // Основной диапазон кириллицы (а-я, А-Я)
+        // U+0410-U+044F - основные русские буквы
+        // U+0401 (Ё), U+0451 (ё) - буква Ё
+        return (character >= '\u0410' && character <= '\u044F') ||
+               character == '\u0401' || character == '\u0451';
     }
     
     /// <summary>

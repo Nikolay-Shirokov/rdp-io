@@ -381,9 +381,10 @@ public class ApplicationOrchestrator : IDisposable
 
         try
         {
-            // Создаем окно обратного отсчета
+            // Создаем окно обратного отсчета с информацией о режиме ввода
             int countdownSeconds = _settingsManager.CurrentSettings.CountdownSeconds;
-            _countdownWindow = new CountdownWindow(countdownSeconds);
+            var inputMethod = _settingsManager.CurrentSettings.TextInputMethod;
+            _countdownWindow = new CountdownWindow(countdownSeconds, inputMethod);
 
             // Подписываемся на события окна
             _countdownWindow.CountdownCompleted += OnCountdownCompleted;
@@ -477,9 +478,10 @@ public class ApplicationOrchestrator : IDisposable
                 _logger.LogInfo($"Transmitting clipboard text: {textToTransmit.Length} characters");
             }
 
-            // Устанавливаем стратегию передачи из настроек
+            // Устанавливаем стратегию передачи и метод ввода из настроек
             var strategy = _settingsManager.GetTransmissionStrategy();
             _keyboardSimulator.SetTransmissionStrategy(strategy);
+            _keyboardSimulator.SetTextInputMethod(_settingsManager.CurrentSettings.TextInputMethod);
 
             // Создаем CancellationToken для возможности отмены
             _transmissionCts = new CancellationTokenSource();

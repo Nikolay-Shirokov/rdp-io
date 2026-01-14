@@ -2,6 +2,7 @@ using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Threading;
+using RdpIo.Core.KeyboardSimulation;
 
 namespace RdpIo.UI.Windows;
 
@@ -28,13 +29,17 @@ public partial class CountdownWindow : Window
     /// Создает новое окно обратного отсчета
     /// </summary>
     /// <param name="countdownSeconds">Количество секунд для отсчета (по умолчанию 5)</param>
-    public CountdownWindow(int countdownSeconds = 5)
+    /// <param name="inputMethod">Метод ввода текста (для отображения информации)</param>
+    public CountdownWindow(int countdownSeconds = 5, TextInputMethod inputMethod = TextInputMethod.Unicode)
     {
         InitializeComponent();
 
         _viewModel = new CountdownViewModel(countdownSeconds);
         _viewModel.CancelRequested += (s, e) => Cancel();
         DataContext = _viewModel;
+
+        // Отображаем информацию о режиме ввода
+        SetInputMethodInfo(inputMethod);
 
         // Таймер тикает каждую секунду
         _timer = new DispatcherTimer
@@ -54,6 +59,24 @@ public partial class CountdownWindow : Window
 
         // Запускаем таймер после загрузки окна
         Loaded += (s, e) => _timer.Start();
+    }
+
+    /// <summary>
+    /// Устанавливает информацию о режиме ввода
+    /// </summary>
+    private void SetInputMethodInfo(TextInputMethod inputMethod)
+    {
+        if (inputMethod == TextInputMethod.Hybrid)
+        {
+            InputModeText.Text = "Режим: Hybrid (кириллица через клавиатуру)";
+            HybridWarningText.Text = "⚠ Включите русскую раскладку в целевом окне!";
+            HybridWarningText.Visibility = Visibility.Visible;
+        }
+        else
+        {
+            InputModeText.Text = "Режим: Unicode";
+            HybridWarningText.Visibility = Visibility.Collapsed;
+        }
     }
 
     /// <summary>

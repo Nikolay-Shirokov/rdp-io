@@ -24,6 +24,12 @@ public interface IKeyboardSimulator
     void SetTransmissionStrategy(TransmissionStrategy strategy);
 
     /// <summary>
+    /// Устанавливает метод ввода символов
+    /// </summary>
+    /// <param name="method">Метод ввода (Unicode/Hybrid)</param>
+    void SetTextInputMethod(TextInputMethod method);
+
+    /// <summary>
     /// Проверяет, поддерживается ли указанный символ
     /// </summary>
     /// <param name="character">Символ для проверки</param>
