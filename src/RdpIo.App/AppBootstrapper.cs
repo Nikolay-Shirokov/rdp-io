@@ -120,30 +120,12 @@ public static class AppBootstrapper
         services.RegisterSingleton<IImageProcessor>(() => new ImageProcessor());
 
         // ===== OCR: TEXT RECOGNITION =====
-        // OCR Engine - Singleton (dynamically selected based on settings)
-        services.RegisterSingleton<IOcrEngine>(() =>
+        // OCR Engine Factory - creates engines dynamically based on current settings
+        services.RegisterSingleton<IOcrEngineFactory>(() =>
         {
             var settingsManager = services.GetRequiredService<SettingsManager>();
             var logger = services.GetRequiredService<ILogger>();
-            var settings = settingsManager.CurrentSettings;
-
-            // Select engine based on settings
-            if (settings.OcrEngine.Equals("Tesseract", StringComparison.OrdinalIgnoreCase))
-            {
-                try
-                {
-                    logger.LogInfo("Initializing Tesseract OCR engine");
-                    return new TesseractOcrEngine();
-                }
-                catch (Exception ex)
-                {
-                    logger.LogWarning($"Failed to initialize Tesseract OCR: {ex.Message}. Falling back to Windows OCR.");
-                    return new WindowsOcrEngine();
-                }
-            }
-
-            logger.LogInfo("Using Windows built-in OCR engine");
-            return new WindowsOcrEngine();
+            return new OcrEngineFactory(settingsManager, logger);
         });
 
         // ===== UI =====
@@ -168,7 +150,7 @@ public static class AppBootstrapper
             var logger = services.GetRequiredService<ILogger>();
             var screenCaptureManager = services.GetRequiredService<IScreenCaptureManager>();
             var imageProcessor = services.GetRequiredService<IImageProcessor>();
-            var ocrEngine = services.GetRequiredService<IOcrEngine>();
+            var ocrEngineFactory = services.GetRequiredService<IOcrEngineFactory>();
 
             return new ApplicationOrchestrator(
                 systemTrayManager,
@@ -179,7 +161,7 @@ public static class AppBootstrapper
                 logger,
                 screenCaptureManager,
                 imageProcessor,
-                ocrEngine);
+                ocrEngineFactory);
         });
 
         // Возвращаем ServiceProvider

@@ -29,7 +29,7 @@ public class ApplicationOrchestrator : IDisposable
     private readonly ILogger _logger;
     private readonly IScreenCaptureManager _screenCaptureManager;
     private readonly IImageProcessor _imageProcessor;
-    private readonly IOcrEngine _ocrEngine;
+    private readonly IOcrEngineFactory _ocrEngineFactory;
 
     private MainWindow? _mainWindow;
     private CountdownWindow? _countdownWindow;
@@ -55,7 +55,7 @@ public class ApplicationOrchestrator : IDisposable
         ILogger logger,
         IScreenCaptureManager screenCaptureManager,
         IImageProcessor imageProcessor,
-        IOcrEngine ocrEngine)
+        IOcrEngineFactory ocrEngineFactory)
     {
         _systemTrayManager = systemTrayManager ?? throw new ArgumentNullException(nameof(systemTrayManager));
         _stateManager = stateManager ?? throw new ArgumentNullException(nameof(stateManager));
@@ -65,7 +65,7 @@ public class ApplicationOrchestrator : IDisposable
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _screenCaptureManager = screenCaptureManager ?? throw new ArgumentNullException(nameof(screenCaptureManager));
         _imageProcessor = imageProcessor ?? throw new ArgumentNullException(nameof(imageProcessor));
-        _ocrEngine = ocrEngine ?? throw new ArgumentNullException(nameof(ocrEngine));
+        _ocrEngineFactory = ocrEngineFactory ?? throw new ArgumentNullException(nameof(ocrEngineFactory));
 
         AttachEventHandlers();
 
@@ -756,8 +756,12 @@ public class ApplicationOrchestrator : IDisposable
         {
             var settings = _settingsManager.CurrentSettings;
 
+            // Создаём OCR движок на основе текущих настроек
+            var ocrEngine = _ocrEngineFactory.CreateEngine();
+            _logger.LogInfo($"Using OCR engine: {settings.OcrEngine}");
+
             // Проверяем доступность языков
-            var availableLanguages = await _ocrEngine.GetAvailableLanguagesAsync();
+            var availableLanguages = await ocrEngine.GetAvailableLanguagesAsync();
             _logger.LogInfo($"Available OCR languages: {string.Join(", ", availableLanguages)}");
 
             // Stage 2: Обработка изображения
@@ -794,16 +798,16 @@ public class ApplicationOrchestrator : IDisposable
             if (settings.OcrLanguage.Equals("auto", StringComparison.OrdinalIgnoreCase))
             {
                 _logger.LogInfo("Auto-detecting OCR language...");
-                result = await RecognizeWithAutoLanguageAsync(processedImage, availableLanguages);
+                result = await RecognizeWithAutoLanguageAsync(processedImage, availableLanguages, ocrEngine);
             }
             else
             {
                 // Проверяем доступность указанного языка
-                var isLanguageAvailable = await _ocrEngine.IsLanguageAvailableAsync(settings.OcrLanguage);
+                var isLanguageAvailable = await ocrEngine.IsLanguageAvailableAsync(settings.OcrLanguage);
                 if (!isLanguageAvailable)
                 {
                     _logger.LogWarning($"Requested OCR language '{settings.OcrLanguage}' is not available. Falling back to auto-detection.");
-                    result = await RecognizeWithAutoLanguageAsync(processedImage, availableLanguages);
+                    result = await RecognizeWithAutoLanguageAsync(processedImage, availableLanguages, ocrEngine);
                 }
                 else
                 {
@@ -815,7 +819,7 @@ public class ApplicationOrchestrator : IDisposable
                         EngineType = OcrEngineType.Windows,
                         TimeoutSeconds = 30
                     };
-                    result = await _ocrEngine.RecognizeTextAsync(processedImage, ocrSettings);
+                    result = await ocrEngine.RecognizeTextAsync(processedImage, ocrSettings);
                 }
             }
 
@@ -852,7 +856,7 @@ public class ApplicationOrchestrator : IDisposable
     /// <summary>
     /// Пробует распознавание с несколькими языками и выбирает лучший результат
     /// </summary>
-    private async Task<OcrResult> RecognizeWithAutoLanguageAsync(Bitmap image, IReadOnlyList<string> availableLanguages)
+    private async Task<OcrResult> RecognizeWithAutoLanguageAsync(Bitmap image, IReadOnlyList<string> availableLanguages, IOcrEngine ocrEngine)
     {
         // Приоритетные языки для проверки (в порядке приоритета)
         var languagesToTry = new[] { "ru", "en", "ru-RU", "en-US", "en-GB" };
@@ -886,7 +890,7 @@ public class ApplicationOrchestrator : IDisposable
                     TimeoutSeconds = 10
                 };
 
-                var result = await _ocrEngine.RecognizeTextAsync(image, ocrSettings);
+                var result = await ocrEngine.RecognizeTextAsync(image, ocrSettings);
 
                 // Оценка: уверенность * количество символов (чем больше, тем лучше)
                 double score = result.Confidence * result.CharacterCount;
