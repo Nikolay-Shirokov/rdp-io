@@ -1,5 +1,6 @@
 using System.Drawing;
 using System.Drawing.Imaging;
+using System.Runtime.InteropServices;
 using Tesseract;
 
 namespace RdpIo.Infrastructure.OcrManagement;
@@ -14,6 +15,13 @@ public class TesseractOcrEngine : IOcrEngine
     private TesseractEngine? _engine;
     private string? _currentLanguage;
 
+    // P/Invoke для установки пути к DLL (Windows)
+    [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+    private static extern bool SetDllDirectory(string lpPathName);
+
+    [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+    private static extern IntPtr AddDllDirectory(string lpPathName);
+
     /// <summary>
     /// Gets the name of the OCR engine
     /// </summary>
@@ -25,6 +33,19 @@ public class TesseractOcrEngine : IOcrEngine
         // BaseDirectory указывает на временную папку распаковки
         string exePath = Environment.ProcessPath ?? AppDomain.CurrentDomain.BaseDirectory;
         string exeDirectory = Path.GetDirectoryName(exePath) ?? AppDomain.CurrentDomain.BaseDirectory;
+
+        // Устанавливаем путь к нативным DLL для Tesseract
+        // Это критически важно для single-file deployment
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
+            // Добавляем путь к exe в DLL search path
+            var handle = AddDllDirectory(exeDirectory);
+            if (handle == IntPtr.Zero)
+            {
+                // Fallback на SetDllDirectory если AddDllDirectory не работает
+                SetDllDirectory(exeDirectory);
+            }
+        }
 
         _tessDataPath = Path.Combine(exeDirectory, "tessdata");
 
