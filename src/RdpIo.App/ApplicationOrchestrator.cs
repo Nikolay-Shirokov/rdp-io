@@ -31,6 +31,7 @@ public class ApplicationOrchestrator : IDisposable
     private readonly IImageProcessor _imageProcessor;
     private readonly IOcrEngine _ocrEngine;
 
+    private MainWindow? _mainWindow;
     private CountdownWindow? _countdownWindow;
     private ProgressWindow? _progressWindow;
     private CancellationTokenSource? _transmissionCts;
@@ -77,6 +78,7 @@ public class ApplicationOrchestrator : IDisposable
     private void AttachEventHandlers()
     {
         // События от System Tray
+        _systemTrayManager.ShowMainWindowRequested += OnShowMainWindowRequested;
         _systemTrayManager.StartTransmissionRequested += OnStartTransmissionRequested;
         _systemTrayManager.StartOcrCaptureRequested += OnStartOcrCaptureRequested;
         _systemTrayManager.SettingsRequested += OnSettingsRequested;
@@ -84,6 +86,56 @@ public class ApplicationOrchestrator : IDisposable
 
         // События от State Manager
         _stateManager.StateChanged += OnStateChanged;
+    }
+
+    /// <summary>
+    /// Показывает главное окно приложения при запуске
+    /// </summary>
+    public void ShowMainWindow()
+    {
+        System.Windows.Application.Current.Dispatcher.Invoke(() =>
+        {
+            if (_mainWindow == null || !_mainWindow.IsVisible)
+            {
+                _mainWindow = new MainWindow();
+
+                // Подписываемся на события от главного окна
+                _mainWindow.ClipboardCaptureRequested += (s, e) => OnStartTransmissionRequested(s, e);
+                _mainWindow.OcrCaptureRequested += (s, e) => OnStartOcrCaptureRequested(s, e);
+                _mainWindow.SettingsRequested += (s, e) => OnSettingsRequested(s, e);
+                _mainWindow.MinimizeToTrayRequested += (s, e) => { _mainWindow?.Hide(); };
+                _mainWindow.ExitRequested += (s, e) => OnExitRequested(s, e);
+
+                _mainWindow.Show();
+                _logger.LogInfo("Main window shown");
+            }
+            else
+            {
+                _mainWindow.Activate();
+                _logger.LogInfo("Main window activated");
+            }
+        });
+    }
+
+    /// <summary>
+    /// Обработчик запроса показа главного окна из System Tray
+    /// </summary>
+    private void OnShowMainWindowRequested(object? sender, EventArgs e)
+    {
+        _logger.LogInfo("Show/hide main window requested");
+
+        System.Windows.Application.Current.Dispatcher.Invoke(() =>
+        {
+            if (_mainWindow == null || !_mainWindow.IsVisible)
+            {
+                ShowMainWindow();
+            }
+            else
+            {
+                _mainWindow.Hide();
+                _logger.LogInfo("Main window hidden");
+            }
+        });
     }
 
     /// <summary>

@@ -21,6 +21,11 @@ public class SystemTrayManager : IDisposable
     private ContextMenuStrip? _contextMenu;
 
     /// <summary>
+    /// Событие запроса показа главного окна
+    /// </summary>
+    public event EventHandler? ShowMainWindowRequested;
+
+    /// <summary>
     /// Событие запроса запуска передачи
     /// </summary>
     public event EventHandler? StartTransmissionRequested;
@@ -110,13 +115,14 @@ public class SystemTrayManager : IDisposable
         };
 
         // Правый клик - показать меню (стандартное поведение через ContextMenuStrip)
-        // Левый клик - можно использовать для мгновенного старта
+        // Левый клик - показать главное окно
         _notifyIcon.Click += (s, e) =>
         {
             if (e is MouseEventArgs me && me.Button == MouseButtons.Left)
             {
-                // Левый клик - мгновенный старт
-                OnStartTransmission();
+                // Левый клик - показать главное окно
+                _logger.LogInfo("Main window requested from System Tray (left click)");
+                ShowMainWindowRequested?.Invoke(this, EventArgs.Empty);
             }
         };
 

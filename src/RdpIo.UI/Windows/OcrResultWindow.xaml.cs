@@ -48,4 +48,15 @@ public partial class OcrResultWindow : Window
     {
         return _viewModel.RecognizedText;
     }
+
+    /// <summary>
+    /// Обработчик перетаскивания окна за заголовок
+    /// </summary>
+    private void TitleBar_MouseLeftButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
+    {
+        if (e.LeftButton == System.Windows.Input.MouseButtonState.Pressed)
+        {
+            DragMove();
+        }
+    }
 }

@@ -152,7 +152,7 @@ public class TesseractOcrEngine : IOcrEngine
 
     /// <summary>
     /// Normalizes language code for Tesseract
-    /// ru, ru-RU -> rus
+    /// ru, ru-RU -> rus+eng (multi-language for mixed content)
     /// en, en-US -> eng
     /// </summary>
     private string NormalizeTesseractLanguage(string languageCode)
@@ -163,7 +163,8 @@ public class TesseractOcrEngine : IOcrEngine
         var lower = languageCode.ToLowerInvariant();
 
         // Map common language codes to Tesseract's 3-letter codes
-        if (lower.StartsWith("ru")) return "rus";
+        // Russian uses rus+eng to handle mixed Russian/English content (common in technical docs)
+        if (lower.StartsWith("ru")) return "rus+eng";
         if (lower.StartsWith("en")) return "eng";
         if (lower.StartsWith("de")) return "deu";
         if (lower.StartsWith("fr")) return "fra";
