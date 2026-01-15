@@ -1,9 +1,10 @@
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
-using System.Windows.Input;
 using RdpIo.Configuration;
+using RdpIo.Core.KeyboardSimulation;
 using RdpIo.Infrastructure.Logging;
 using RdpIo.UI.Commands;
+using ICommand = System.Windows.Input.ICommand;
 
 namespace RdpIo.UI.Windows;
 
@@ -25,6 +26,7 @@ public class SettingsViewModel : INotifyPropertyChanged
     private string _selectedOcrEngine;
     private string _selectedOcrLanguage;
     private bool _ocrEnablePreprocessing;
+    private TextInputMethod _selectedTextInputMethod;
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
@@ -45,6 +47,7 @@ public class SettingsViewModel : INotifyPropertyChanged
         _selectedOcrEngine = settings.OcrEngine;
         _selectedOcrLanguage = settings.OcrLanguage;
         _ocrEnablePreprocessing = settings.OcrEnablePreprocessing;
+        _selectedTextInputMethod = settings.TextInputMethod;
 
         // Команды
         SaveCommand = new RelayCommand(_ => Save(), _ => CanSave());
@@ -246,10 +249,32 @@ public class SettingsViewModel : INotifyPropertyChanged
     }
 
     /// <summary>
+    /// Метод ввода текста
+    /// </summary>
+    public TextInputMethod SelectedTextInputMethod
+    {
+        get => _selectedTextInputMethod;
+        set
+        {
+            if (_selectedTextInputMethod != value)
+            {
+                _selectedTextInputMethod = value;
+                OnPropertyChanged();
+            }
+        }
+    }
+
+    /// <summary>
     /// Список доступных режимов передачи
     /// </summary>
     public TransmissionMode[] TransmissionModes { get; } =
         (TransmissionMode[])Enum.GetValues(typeof(TransmissionMode));
+
+    /// <summary>
+    /// Список доступных методов ввода
+    /// </summary>
+    public TextInputMethod[] TextInputMethods { get; } =
+        (TextInputMethod[])Enum.GetValues(typeof(TextInputMethod));
 
     /// <summary>
     /// Список доступных уровней логирования
@@ -331,6 +356,7 @@ public class SettingsViewModel : INotifyPropertyChanged
         _settings.OcrEngine = _selectedOcrEngine;
         _settings.OcrLanguage = _selectedOcrLanguage;
         _settings.OcrEnablePreprocessing = _ocrEnablePreprocessing;
+        _settings.TextInputMethod = _selectedTextInputMethod;
 
         Saved?.Invoke(this, EventArgs.Empty);
     }

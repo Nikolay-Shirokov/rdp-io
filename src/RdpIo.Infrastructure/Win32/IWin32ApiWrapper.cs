@@ -17,6 +17,11 @@ public interface IWin32ApiWrapper
     /// </summary>
     uint MapVirtualKey(uint uCode, uint uMapType);
 
+    /// <summary>
+    /// Retrieves the status of the specified virtual key (pressed state and toggle state)
+    /// </summary>
+    short GetKeyState(int nVirtKey);
+
     // ===== Clipboard =====
 
     /// <summary>
